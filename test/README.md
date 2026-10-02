@@ -8,6 +8,7 @@ the original BareMetal build: `make` still produces a byte-identical `k.app`.
 | Command | What it shows |
 | --- | --- |
 | `test/host/run-golden.sh` | k built three ways passes the same golden transcripts: **avx512** (kbm as shipped, native), **x86v3** (portable, AVX2, no zmm), **aarch64** (portable, Cortex-A72 under `qemu-aarch64`). Also runs `kvec_diff`. |
+| `test/qemu-portable.sh [--test]` | **The Mac path.** `make PORTABLE=1` kbm on *current* BareMetal (virtio-blk) under QEMU, CPU Westmere, TCG. Interactive, or `--test` diffs the goldens. Needs `MEM` >= 1536 (default 2048). |
 | `test/kvec_diff.c` | Each portable helper in `ksrc/kvec.h` vs the AVX-512 instruction it replaces, 20,000 random inputs each. |
 | `test/pin-baremetal-2024.sh` | Rebuilds the Dec-2024 BareMetal set kbm was written against (see below for why HEAD fails). |
 | `test/make-serial-image.sh` | Disk image that boots that BareMetal straight into k with the console on COM1. Under QEMU it reaches k and faults `#UD` on the first AVX-512 instruction, as expected for TCG. |

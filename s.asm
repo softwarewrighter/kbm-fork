@@ -32,3 +32,19 @@ b_k_exit:
 	call [b_system]
 	ret
 ;-----------------------------------------------------------------------------
+
+; -----------------------------------------------------------------------------
+; k_sys -- C-ABI entry used by `make PORTABLE=1` builds (see ksrc/ksys.h)
+; IN: RDI = nr (x86-64 Linux numbering), RSI, RDX, RCX = first three args
+; Reshuffles to b_k's convention (AX = nr, RDI/RSI/RDX = args).
+; Assembled only with -dKSYS, so the default build is byte-identical.
+%ifdef KSYS
+global k_sys
+k_sys:
+	mov rax, rdi
+	mov rdi, rsi
+	mov rsi, rdx
+	mov rdx, rcx
+	jmp b_k
+%endif
+;-----------------------------------------------------------------------------

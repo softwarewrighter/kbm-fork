@@ -2,19 +2,29 @@
 B=../BareMetal-OS
 CFLAGS=-Ofast -fno-builtin -funsigned-char -fno-unwind-tables -Wno-parentheses -Wno-incompatible-pointer-types \
        -Wfatal-errors -nostdlib -mno-red-zone -mcmodel=large -fomit-frame-pointer \
-       -march=icelake-client -I$B/src/BareMetal/api
+       $(ARCH) $(KFLAGS) -I$B/src/BareMetal/api
+# Default: kbm as shipped (AVX-512; needs Bochs or a real AVX-512 CPU).
+# `make PORTABLE=1`: no AVX-512 (ksrc/kvec.h) and OS calls via k_sys
+# (ksrc/ksys.h -> s.asm), so it also runs under QEMU TCG, e.g. on a Mac.
+ifdef PORTABLE
+ARCH=-march=x86-64-v2
+KFLAGS=-DKSYS -Wno-psabi
+NFLAGS=-dKSYS
+else
+ARCH=-march=icelake-client
+endif
 CC=$(shell which clang-13 clang |head -1)
 l=-z max-page-size=0x1000 -z noexecstack
 img=$B/sys/baremetal_os.img
 app=$B/sys/k.app
 
 all:$(img)
-_.h: makefile
+_.h: makefile $(wildcard ksrc/*.[hc])
 	cp ksrc/*.[hc] .
 z.c:_.h
 a.c:_.h
 s.o:s.asm
-	nasm -f elf64 s.asm -I$B/src/BareMetal
+	nasm -f elf64 $(NFLAGS) s.asm -I$B/src/BareMetal
 $(img):sys.o a.o z.o s.o
 	ld -T app.ld $l sys.o a.o z.o s.o -o k
 	objcopy -O binary k $(app)
@@ -25,4 +35,4 @@ bochs:$(img)
 disasm:
 	objdump -drwC -Mintel -S k | less
 clean:
-	rm -rf k *.o *.s $(img) $(app) ?.[ch] z.k
+	rm -rf k *.o *.s $(img) $(app) ?.[ch] kvec.h ksys.h z.k
