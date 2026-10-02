@@ -17,7 +17,9 @@ VE(_q,o(sqrtps)(x,4))_F(X9,-a^B(ia32_pclmulqdq128)((j4){x},~(j4){},0)[0])
 #else
 #include"kvec.h"//portable stand-ins for the AVX-512 helpers above
 #endif
-#if 14>__clang_major__
+#if !__clang__ //GCC: no __builtin_elementwise_max; select by compare mask
+VF(MG,V m=(V)(a>b);(a&m)|(b&~m))VF(MI,i6 p=(i6)a;i6 q=(i6)b;i6 m=(i6)(p>q);(V)((p&m)|(q&~m)))
+#elif 14>__clang_major__
 V2(MG,pmaxub)V2(MI,pmaxud)
 #else
 VF(MG,B(elementwise_max)(a,b))VF(MI,B(elementwise_max)((i6)a,(i6)b))

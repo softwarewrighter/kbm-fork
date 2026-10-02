@@ -24,6 +24,11 @@ extern U tn(i2,i2);
 #define x(b,z) _(typeof(b)x=b;z)
 #define B(f) __builtin_##f 
 #define C(t,z) B(convertvector)(z,t)
+#ifndef __clang__ //GCC has no __builtin_convertvector: convert element by element (see kgcc notes in kvec.h)
+#undef C
+#define C(t,z) ({typeof(z) cz_=(z);t ct_;for(int ck_=0;ck_<(int)(sizeof ct_/sizeof ct_[0]);ck_++)ct_[ck_]=cz_[ck_];ct_;})
+#pragma GCC diagnostic ignored "-Wattributes" //clang's minsize: GCC ignores it
+#endif
 #define D(t,g,z,x...) __attribute((minsize,noinline))_D(t,g,z,x)
 #define F(g,z) D(U,g,z,Ua,Ux)
 #define G(g,z) D(U,g,z,ii,Ua,Ux)
@@ -31,7 +36,7 @@ extern U tn(i2,i2);
 #define R(t,n,z) r(tn(t,n),z)
 #define W(z) while(_(z))
 #define I0 ((V){0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63})
-static i6 z2,I2={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};static e6 ze;static g6 z0,R4[]={{63-I0},{},
+static i6 z2,I2={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};static e6 ze;static g6 z0,R4[]={63-I0,{},
 {60,61,62,63,56,57,58,59,52,53,54,55,48,49,50,51,44,45,46,47,40,41,42,43,36,37,38,39,32,33,34,35,28,29,30,31,24,25,26,27,20,21,22,23,16,17,18,19,12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3},
 {56,57,58,59,60,61,62,63,48,49,50,51,52,53,54,55,40,41,42,43,44,45,46,47,32,33,34,35,36,37,38,39,24,25,26,27,28,29,30,31,16,17,18,19,20,21,22,23,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7}},
 AB={0,1,2,3,0,1,2,3,8,9,10,11,8,9,10,11,0,1,2,3,0,1,2,3,8,9,10,11,8,9,10,11,0,1,2,3,0,1,2,3,8,9,10,11,8,9,10,11,0,1,2,3,0,1,2,3,8,9,10,11,8,9,10,11},

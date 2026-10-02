@@ -1,0 +1,16 @@
+_.h:12:14|incompatible types when assigning to type 'V' {aka '__vector(64) char'} from type '__vector(16) float'
+_.h:12:14|incompatible types when assigning to type 'V' {aka '__vector(64) char'} from type 'e6' {aka '__vector(16) float'}
+_.h:39:89|initializer element is not constant
+_.h:82:12|incompatible types when assigning to type 'V' {aka '__vector(64) char'} from type 'e6' {aka '__vector(16) float'}
+a.c:7:173|comparing vectors with different element types
+a.c:7:178|comparing vectors with different element types
+a.c:7:183|comparing vectors with different element types
+a.c:7:51|type mismatch in conditional expression
+a.h:34:22|invalid operands to binary + (have '__vector(16) unsigned int' and 'V' {aka '__vector(64) char'})
+a.h:34:36|invalid operands to binary + (have '__vector(16) float' and 'V' {aka '__vector(64) char'})
+b.c:12:164|invalid operands to binary + (have 'i6' {aka '__vector(16) unsigned int'} and 'V' {aka '__vector(64) char'})
+b.c:12:85|invalid operands to binary & (have '__vector(16) int' and 'V' {aka '__vector(64) char'})
+b.c:16:135|incompatible type for argument 2 of 'S6'
+b.c:17:12|incompatible types when initializing type 's6' {aka '__vector(16) int'} using type 'e6' {aka '__vector(16) float'}
+b.c:17:16|incompatible types when assigning to type 'e6' {aka '__vector(16) float'} from type 's6' {aka '__vector(16) int'}
+b.c:6:114|type mismatch in conditional expression

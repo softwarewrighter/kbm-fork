@@ -30,7 +30,11 @@ VF(A2,i6 d=(i6)a;i6 x=(i6)b;i6 r;for(int k=0;k<16;k++)r[k]=d[x[k]&15];(V)r)
 Vg(S6,int s=i<2?i+1:4<<(i-2);V r;for(int k=0;k<64;k++)r[k]=k<s?0:a[k-s];r)
 // vsqrtps. elementwise_sqrt lowers to vector sqrt (fsqrt on NEON); a libm
 // sqrtf would be unavailable: k builds with -fno-builtin and no libc.
+#if __clang__
 VE(_q,B(elementwise_sqrt)(x))
+#else // GCC: no elementwise builtins
+VE(_q,e6 r;for(int k=0;k<16;k++)r[k]=__builtin_sqrtf(x[k]);r)
+#endif
 // pclmulqdq(x, ~0): carry-less multiply by all-ones = prefix XOR of the bits.
 _F(X9,x^=x<<1;x^=x<<2;x^=x<<4;x^=x<<8;x^=x<<16;x^=x<<32;-a^x)
 
