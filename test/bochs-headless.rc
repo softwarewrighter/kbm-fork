@@ -1,0 +1,37 @@
+# Headless Bochs config for driving k-on-BareMetal over COM1.
+# Paths are relative to kbm-fork/test (run bochs from there).
+# ROM is SeaBIOS: Ubuntu 24.04's packaged BIOS-bochs-latest (2.7) crashes in
+# rombios32 before loading any disk.
+#
+# Rationale:
+#  - display_library: term   -> no X server needed (run under a pty)
+#  - com1 socket-server      -> with the -dNO_VGA -dNO_LFB kernel (see
+#                               make-serial-image.sh) BareMetal sends stdout to
+#                               serial and treats
+#                               serial RX as keyboard input, so a socket is a
+#                               complete console for k
+#  - cpu model tigerlake     -> Bochs 2.7 lacks sapphire_rapids; tigerlake
+#                               exposes the AVX-512 subsets (F/BW/DQ/VL/VBMI2/
+#                               BITALG/VPOPCNTDQ/VNNI) that -march=icelake-client
+#                               can emit. QEMU TCG has no AVX-512, so it can't
+#                               run this binary.
+display_library: term
+config_interface: textconfig
+megs: 1200
+romimage: file="/usr/share/seabios/bios.bin"
+vgaromimage: file="/usr/share/bochs/VGABIOS-lgpl-latest"
+# The Dec-2024 MBR needs a 1024x768x32 VBE mode or it halts silently.
+vga: extension=vbe, update_freq=5
+boot: disk
+ata0: enabled=true, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+ata0-master: type=disk, path="out/k-serial.img", mode=flat
+pci: enabled=1, chipset=i440fx
+cpu: count=1, ips=50000000, model=tigerlake, reset_on_triple_fault=1, ignore_bad_msrs=1
+clock: sync=none, time0=local
+log: bochslog.txt
+debug: action=ignore
+info: action=report
+error: action=report
+panic: action=fatal
+com1: enabled=true, mode=socket-server, dev=localhost:14501
+speaker: enabled=false

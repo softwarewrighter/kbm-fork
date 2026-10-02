@@ -4,14 +4,16 @@
 #define Vr *(V*)rV
 #include"_.h"
 #define AS(f,s,x...) ZU __attribute((naked))f(x){asm(s"ret");}
-#if __x86_64
+#if KSYS
+#include"ksys.h"//OS calls via k_sys(); see ksys.h
+#elif __x86_64
 #define O(f,i) AS(f,"mov %rcx,%r10;mov $"#i",%rax;call b_k;",Ux,...)
 AS(ut,"rdtsc;shl $32,%rdx;or %rdx,%rax;")UV(bg,B(ia32_cvtb2mask512)(a))
 #else
 #define O(f,i) AS(f,"mov x16,"#i"\nldr x1,[sp]\nldr x2,[sp,8]\nldr x3,[sp,16]\nmov x4,0\nmov x5,x4\nsvc 0\n",Ux,...)
 AS(ut,"mrs x0,cntvct_el0\nmov x1,100\nmul x0,x0,x1\n")
 #endif
-#if linux
+#if linux||KSYS
 Z2 M;O(_k,60)O(_w,0)O(w_,1)O(_d,3)O(d_,2)O(_n,5)O(m_,9)O(_m,11)
 #else
 Z2 M=1;O(_w,3)O(w_,4)O(_d,6)O(d_,5)O(_n,189)O(m_,197)O(_m,73)

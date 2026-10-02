@@ -8,11 +8,15 @@
 #define V(z) r(uz(x),V*R=r0;V*X=x0;J(Nx,R_=_(z)))
 #define sx ((i0*)(0x7fffffffffc0&rx))
 #include"_.h"//to[mn] 4/12/48 //xV[Nx>>6]|=(i0)(Nx%64)<=I0 
+#if __AVX512F__
 #define o(f) B(ia32_##f##512) //_U(c2,B(ia32_compressstoresi512_mask)(s,a,n);nu(n),ss,in,Va)UV(bj,o(cvtq2mask)(a))Vf(pc,o(vpopcntq_)(a))
 #define V2(g,f) VF(g,o(f)(a,b))
 UV(bg,o(cvtb2mask)(a))UV(bi,o(cvtd2mask)(a))V2(a4,pshufb)V2(A0,permvarqi)V2(A2,permvarsi)
 Vg(S6,2>i?o(vpermi2varqi)(z0,i?62+I0:63+I0,a):$4(i-2,o(alignd)(a,z0,15),o(alignd)(a,z0,14),o(alignd)(a,z0,12),o(alignd)(a,z0,8)))
 VE(_q,o(sqrtps)(x,4))_F(X9,-a^B(ia32_pclmulqdq128)((j4){x},~(j4){},0)[0])
+#else
+#include"kvec.h"//portable stand-ins for the AVX-512 helpers above
+#endif
 #if 14>__clang_major__
 V2(MG,pmaxub)V2(MI,pmaxud)
 #else

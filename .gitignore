@@ -1,0 +1,9 @@
+# build outputs (the makefile copies ksrc/*.[hc] to the root)
+/*.o
+/k
+/*.h
+/[abz].c
+test/out/
+test/host/build/
+test/bochslog.txt
+test/*.out
