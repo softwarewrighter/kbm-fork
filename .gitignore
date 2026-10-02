@@ -8,3 +8,6 @@ test/host/build/
 test/bochslog.txt
 test/*.out
 /.flavor
+/boards/*/dist/
+/boards/*/build/
+/boards/mcu/*/build/
