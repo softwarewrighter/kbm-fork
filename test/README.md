@@ -15,6 +15,8 @@ the original BareMetal build: `make` still produces a byte-identical `k.app`.
 Requirements: clang + lld, an AVX-512 (VBMI2) host for the reference build,
 `qemu-user` for aarch64, nasm/mtools for the BareMetal images.
 
+See also `docs/k-on-sw-os-ml.md` for the plan to run k on sw-os-ml.
+
 ## The port boundary
 
 - `ksrc/kvec.h` -- portable stand-ins for the 8 AVX-512 helpers in `a.h`
