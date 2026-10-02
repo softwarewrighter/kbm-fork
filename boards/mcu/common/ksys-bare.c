@@ -11,13 +11,16 @@
 // serial); in the QEMU stand-ins they are a 16550 UART or semihosting.
 // Line input does what a terminal driver would: echo, CR -> LF, backspace.
 // Files (\l) are not supported: open etc. return -ENOSYS, as on BareMetal.
+//
+// Plain C with no libc dependency: compiles with clang or with an SDK's GCC.
+// Without an SDK, also link libc-min.c (memset etc.); with one, don't.
 #include <stddef.h>
 typedef unsigned long long U;   // must match ksrc/_.h
 
 int con_getc(void);
 void con_putc(int c);
 void con_exit(int code);
-int main(int, char **);
+int k_main(int, char **);   // k's main, renamed at build time (-Dmain=k_main)
 
 static U read_line(char *s, U n) {
   U i = 0;
@@ -57,31 +60,6 @@ U k_sys(U nr, U a, U b, U c, U d, U e, U f) {
 // Called by the platform's startup code after .bss is zeroed and the FPU is on.
 void kmain(void) {
   static char *argv[] = {"k", 0};
-  main(1, argv);
+  k_main(1, argv);
   con_exit(0);
-}
-
-// Freestanding code may still emit calls to these.
-void *memset(void *d, int c, size_t n) {
-  unsigned char *p = d; while (n--) *p++ = (unsigned char)c; return d; }
-void *memcpy(void *d, const void *s, size_t n) {
-  unsigned char *p = d; const unsigned char *q = s; while (n--) *p++ = *q++; return d; }
-void *memmove(void *d, const void *s, size_t n) {
-  unsigned char *p = d; const unsigned char *q = s;
-  if (p < q) while (n--) *p++ = *q++; else { p += n; q += n; while (n--) *--p = *--q; }
-  return d; }
-int raise(int sig) { con_exit(128 + sig); return 0; }   // libgcc divide-by-zero
-void abort(void) { con_exit(134); for (;;) {} }
-
-// Soft-float targets (no FPU, e.g. RV32IMAC) lower k's vector sqrt to a libm
-// sqrtf call, and there is no libm. Weak, so a real libm or hardware path wins.
-// Bit-trick estimate plus Newton steps: within an ulp or so of correct.
-__attribute__((weak)) float sqrtf(float x) {
-  if (x != x || x < 0) return (x - x) / (x - x);       // NaN
-  if (x == 0 || x == __builtin_inff()) return x;       // +-0, +inf
-  union { float f; unsigned u; } v = {x};
-  v.u = (v.u >> 1) + 0x1fc00000u;
-  float y = v.f;
-  for (int i = 0; i < 6; i++) y = 0.5f * (y + x / y);
-  return y;
 }

@@ -16,11 +16,16 @@
 //   KHEAP=24 1 GiB   20 64 MiB   18 16 MiB   16 4 MiB   12 256 KiB
 // -DKOBJ=n: 2^n handles (default 12 = 4096; the handle field is 12 bits).
 // The table costs 8 bytes per handle.
+// -DKHEAP_ATTR='...': extra attribute on the heap array, e.g. to place it in
+// external PSRAM under ESP-IDF: -DKHEAP_ATTR='__attribute__((section(".ext_ram.bss")))'.
 #ifndef KHEAP_H
 #define KHEAP_H
 
 #ifndef KOBJ
 #define KOBJ 12
+#endif
+#ifndef KHEAP_ATTR
+#define KHEAP_ATTR
 #endif
 #if KOBJ > 12
 #error "KOBJ > 12: k's handle field is 12 bits"
