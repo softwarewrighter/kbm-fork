@@ -19,18 +19,43 @@
 #define KSYS_H
 
 extern U k_sys(U, U, U, U, U, U, U);
-// Variadic like the originals (callers pass 1..6 arguments). Reading past
-// the supplied arguments yields unspecified values the host ignores.
-#define O(f,i) ZU f(U ks0,...){__builtin_va_list v;__builtin_va_start(v,ks0);\
- U ks1=__builtin_va_arg(v,U);U ks2=__builtin_va_arg(v,U);U ks3=__builtin_va_arg(v,U);\
- U ks4=__builtin_va_arg(v,U);U ks5=__builtin_va_arg(v,U);__builtin_va_end(v);\
- return k_sys(i,ks0,ks1,ks2,ks3,ks4,ks5);}
+// The originals are variadic `(Ux,...)` functions. That only works where
+// every argument is 64 bits; on ILP32 targets (32-bit ARM) pointers and ints
+// are 4 bytes and va_arg(U) misreads them. So each entry point becomes a
+// macro that casts each argument to U and makes one fixed-arity, prototyped
+// call, so the arguments are passed correctly on any ABI. z.h's O(f,i) list then expands to
+// nothing; the numbers live here.
+// KCALL(nr, args...) casts each of 1..6 arguments to U explicitly (pointers
+// included) and calls k_sys with the rest zero.
+#define KC1(n,p1) k_sys(n,(U)(p1),0,0,0,0,0)
+#define KC2(n,p1,p2) k_sys(n,(U)(p1),(U)(p2),0,0,0,0)
+#define KC3(n,p1,p2,p3) k_sys(n,(U)(p1),(U)(p2),(U)(p3),0,0,0)
+#define KC4(n,p1,p2,p3,p4) k_sys(n,(U)(p1),(U)(p2),(U)(p3),(U)(p4),0,0)
+#define KC5(n,p1,p2,p3,p4,p5) k_sys(n,(U)(p1),(U)(p2),(U)(p3),(U)(p4),(U)(p5),0)
+#define KC6(n,p1,p2,p3,p4,p5,p6) k_sys(n,(U)(p1),(U)(p2),(U)(p3),(U)(p4),(U)(p5),(U)(p6))
+#define KPICK(p1,p2,p3,p4,p5,p6,N,...) N
+#define KCALL(n,...) KPICK(__VA_ARGS__,KC6,KC5,KC4,KC3,KC2,KC1,_)(n,__VA_ARGS__)
+#define _k(...) KCALL(60, __VA_ARGS__)
+#define _w(...) KCALL(0, __VA_ARGS__)
+#define w_(...) KCALL(1, __VA_ARGS__)
+#define _d(...) KCALL(3, __VA_ARGS__)
+#define d_(...) KCALL(2, __VA_ARGS__)
+#define _n(...) KCALL(5, __VA_ARGS__)
+#define m_(...) KCALL(9, __VA_ARGS__)
+#define _m(...) KCALL(11, __VA_ARGS__)
+#define O(f,i)
 
 // Cycle counter for k's \t timing.
 #if __x86_64
 AS(ut,"rdtsc;shl $32,%rdx;or %rdx,%rax;")
 #elif __aarch64__
 AS(ut,"mrs x0,cntvct_el0\nmov x1,100\nmul x0,x0,x1\n")
+#elif __riscv && __riscv_xlen==64
+AS(ut,"rdtime a0\n")
+#elif __arm__
+// No user-readable cycle counter is guaranteed on 32-bit ARM Linux;
+// \t timings read 0. A host can provide one through k_sys later.
+ZU ut(void){return 0;}
 #else
 #error "ksys.h: no cycle counter for this architecture"
 #endif

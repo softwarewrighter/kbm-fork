@@ -7,3 +7,4 @@ test/out/
 test/host/build/
 test/bochslog.txt
 test/*.out
+/.flavor

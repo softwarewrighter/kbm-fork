@@ -19,6 +19,13 @@ img=$B/sys/baremetal_os.img
 app=$B/sys/k.app
 
 all:$(img)
+# Rebuild everything when the flavor (default vs PORTABLE) changes; otherwise
+# objects from the other flavor are silently reused.
+FLAVOR=$(ARCH) $(KFLAGS) $(NFLAGS)
+.flavor: FORCE
+	@echo '$(FLAVOR)' | cmp -s - $@ || echo '$(FLAVOR)' > $@
+FORCE:
+sys.o a.o z.o s.o: .flavor
 _.h: makefile $(wildcard ksrc/*.[hc])
 	cp ksrc/*.[hc] .
 z.c:_.h
@@ -35,4 +42,4 @@ bochs:$(img)
 disasm:
 	objdump -drwC -Mintel -S k | less
 clean:
-	rm -rf k *.o *.s $(img) $(app) ?.[ch] kvec.h ksys.h z.k
+	rm -rf k *.o *.s $(img) $(app) ?.[ch] kvec.h ksys.h z.k .flavor

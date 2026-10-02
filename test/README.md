@@ -7,14 +7,15 @@ the original BareMetal build: `make` still produces a byte-identical `k.app`.
 
 | Command | What it shows |
 | --- | --- |
-| `test/host/run-golden.sh` | k built three ways passes the same golden transcripts: **avx512** (kbm as shipped, native), **x86v3** (portable, AVX2, no zmm), **aarch64** (portable, Cortex-A72 under `qemu-aarch64`). Also runs `kvec_diff`. |
+| `test/host/run-golden.sh` | k built five ways passes the same golden transcripts: **avx512** (kbm as shipped, native; skipped on hosts without AVX-512 VBMI2), **x86v3** (portable, AVX2, no zmm), **aarch64** (Cortex-A72, `qemu-aarch64`), **rv64** (`rv64gc`, `qemu-riscv64`; e.g. LicheeRV Nano), **armv7** (32-bit Cortex-A7 + NEON, `qemu-arm`; e.g. Luckfox Pico RV1103). Also runs `kvec_diff` on AVX-512 hosts. |
 | `test/qemu-portable.sh [--test]` | **The Mac path.** `make PORTABLE=1` kbm on *current* BareMetal (virtio-blk) under QEMU, CPU Westmere, TCG. Interactive, or `--test` diffs the goldens. Needs `MEM` >= 1536 (default 2048). |
 | `test/kvec_diff.c` | Each portable helper in `ksrc/kvec.h` vs the AVX-512 instruction it replaces, 20,000 random inputs each. |
 | `test/pin-baremetal-2024.sh` | Rebuilds the Dec-2024 BareMetal set kbm was written against (see below for why HEAD fails). |
 | `test/make-serial-image.sh` | Disk image that boots that BareMetal straight into k with the console on COM1. Under QEMU it reaches k and faults `#UD` on the first AVX-512 instruction, as expected for TCG. |
 
 Requirements: clang + lld, an AVX-512 (VBMI2) host for the reference build,
-`qemu-user` for aarch64, nasm/mtools for the BareMetal images.
+`qemu-user` (aarch64, riscv64, arm), ARM libgcc for armv7
+(`libgcc-13-dev-armhf-cross`), nasm/mtools for the BareMetal images.
 
 See also `docs/k-on-sw-os-ml.md` for the plan to run k on sw-os-ml.
 
@@ -26,7 +27,11 @@ See also `docs/k-on-sw-os-ml.md` for the plan to run k on sw-os-ml.
   function `k_sys(nr, a..f)` (x86-64 Linux numbering, which kbm's `s.asm`
   already uses). A host OS implements that one function; for sw-os-ml it
   would be Rust.
-- `test/host/ksys-linux.c` -- `k_sys` for Linux on x86-64 and aarch64.
+- `test/host/ksys-linux.c` -- `k_sys` for Linux on x86-64, aarch64, riscv64
+  and 32-bit ARM, without libc.
+- 64-bit words on 32-bit targets: k packs type, shape, count and a handle
+  into one 64-bit word, so `U` is `unsigned long long` (was `unsigned long`,
+  32 bits on ILP32). Identical code on 64-bit targets.
 
 ## Golden transcripts
 

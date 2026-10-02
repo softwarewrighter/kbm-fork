@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# run-golden.sh -- build k three ways and check each against test/golden/.
+# run-golden.sh -- build k five ways and check each against test/golden/.
 #
 #   avx512   ksrc as kbm ships it (AVX-512 builtins), run natively. Needs an
 #            AVX-512 (VBMI2) host. This build defines the goldens.
 #   x86v3    -DKSYS, portable kvec.h, -march=x86-64-v3 (AVX2, no zmm).
 #   aarch64  -DKSYS, portable kvec.h, Cortex-A72 (Armv8.0 + NEON), run under
 #            qemu-aarch64 -- the CPU sw-os-ml uses under TCG.
+#   rv64     -DKSYS, rv64gc (no vector), qemu-riscv64 -- e.g. LicheeRV Nano
+#            (Sophgo SG2002, T-Head C906; its RVV 0.7.1 isn't targetable).
+#   armv7    -DKSYS, Cortex-A7 + NEON, hard-float, 32-bit (ILP32), qemu-arm
+#            -- e.g. Luckfox Pico (RV1103). Links libgcc for 64-bit math.
 # Also runs kvec_diff: each portable helper vs the AVX-512 instruction.
 #
 #   test/host/run-golden.sh           verify every build
@@ -18,8 +22,13 @@ K="$HERE/../../ksrc"
 cd "$HERE"
 mkdir -p build
 
-grep -qw avx512_vbmi2 /proc/cpuinfo || { echo "host CPU lacks AVX-512 (VBMI2): cannot build the reference k" >&2; exit 2; }
-command -v qemu-aarch64 >/dev/null || { echo "qemu-aarch64 (qemu-user) not installed" >&2; exit 2; }
+# The AVX-512 reference build and kvec_diff need an AVX-512 (VBMI2) CPU. On
+# other hosts (e.g. a Mac, most laptops) they are skipped: the committed
+# .expected files are the reference, and the portable builds are checked
+# against them.
+HAVE512=0; grep -qw avx512_vbmi2 /proc/cpuinfo 2>/dev/null && HAVE512=1
+[[ $HAVE512 == 1 || ${1:-} != --bless ]] || { echo "--bless needs an AVX-512 host" >&2; exit 2; }
+for q in qemu-aarch64 qemu-riscv64 qemu-arm; do command -v $q >/dev/null || { echo "$q (qemu-user) not installed" >&2; exit 2; }; done
 
 CF="-Ofast -fno-builtin -funsigned-char -fno-unwind-tables -Wno-parentheses -Wno-incompatible-pointer-types
     -Wno-psabi -Wfatal-errors -nostdlib -ffreestanding -fomit-frame-pointer -fno-pie -I$K"
@@ -29,9 +38,11 @@ kbuild() { # name, flags...
     clang $CF "$@" -c "$K/z.c" -o "build/z-$n.o"
 }
 # avx512: original code path, b_k = raw syscall (host-linux.S)
+if [[ $HAVE512 == 1 ]]; then
 kbuild avx512 -march=icelake-client
 clang -c host-linux.S -o build/s-avx512.o
 ld.lld -static build/s-avx512.o build/a-avx512.o build/z-avx512.o -o build/k-avx512
+fi
 # portable builds: k_sys from ksys-linux.c
 kbuild x86v3 -march=x86-64-v3 -DKSYS
 clang -O2 -ffreestanding -nostdlib -fno-pie -c ksys-linux.c -o build/ks-x86v3.o
@@ -40,19 +51,34 @@ A64="--target=aarch64-linux-gnu -mcpu=cortex-a72"
 kbuild aarch64 $A64 -DKSYS
 clang $A64 -O2 -ffreestanding -nostdlib -fno-pie -c ksys-linux.c -o build/ks-aarch64.o
 ld.lld -static build/z-aarch64.o build/a-aarch64.o build/ks-aarch64.o -o build/k-aarch64
+RV="--target=riscv64-linux-gnu -march=rv64gc -mabi=lp64d"
+kbuild rv64 $RV -DKSYS
+clang $RV -O2 -ffreestanding -nostdlib -fno-pie -fno-builtin -c ksys-linux.c -o build/ks-rv64.o
+ld.lld -static build/z-rv64.o build/a-rv64.o build/ks-rv64.o -o build/k-rv64
+A7="--target=armv7a-linux-gnueabihf -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard"
+LIBGCC_ARM=$(ls /usr/lib/gcc-cross/arm-linux-gnueabihf/*/libgcc.a 2>/dev/null | head -1)
+[[ -n $LIBGCC_ARM ]] || { echo "need ARM libgcc (apt: libgcc-13-dev-armhf-cross)" >&2; exit 2; }
+kbuild armv7 $A7 -DKSYS
+clang $A7 -O2 -ffreestanding -nostdlib -fno-pie -fno-builtin -c ksys-linux.c -o build/ks-armv7.o
+ld.lld -static build/z-armv7.o build/a-armv7.o build/ks-armv7.o "$LIBGCC_ARM" -o build/k-armv7
 (( $(objdump -d build/k-x86v3 | grep -c zmm) == 0 )) || { echo "x86v3 build contains AVX-512" >&2; exit 1; }
 
 fail=0
+if [[ $HAVE512 == 1 ]]; then
 clang -O2 -march=icelake-client -funsigned-char -ffreestanding -nostdlib -fno-builtin -fno-pie \
       -Wno-parentheses -Wno-incompatible-pointer-types -I"$K" ../kvec_diff.c start-min.S \
       -static -fuse-ld=lld -o build/kvec_diff
 if build/kvec_diff >build/kvec_diff.out; then echo "PASS kvec_diff (8 helpers == AVX-512)"; else cat build/kvec_diff.out; fail=1; fi
+else echo "SKIP avx512 build and kvec_diff (host CPU lacks AVX-512)"; fi
+BUILDS="x86v3 aarch64 rv64 armv7"; [[ $HAVE512 == 1 ]] && BUILDS="avx512 $BUILDS"
 
 declare -A RUN=([avx512]="build/k-avx512" [x86v3]="build/k-x86v3"
-                [aarch64]="qemu-aarch64 -cpu cortex-a72 build/k-aarch64")
+                [aarch64]="qemu-aarch64 -cpu cortex-a72 build/k-aarch64"
+                [rv64]="qemu-riscv64 -cpu rv64 build/k-rv64"
+                [armv7]="qemu-arm -cpu cortex-a7 build/k-armv7")
 for k in ../golden/*.k; do
     exp=${k%.k}.expected
-    for b in avx512 x86v3 aarch64; do
+    for b in $BUILDS; do
         # Drop the banner line: it embeds the build date (__DATE__).
         got=$(K_STEP=${K_STEP:-1.5} python3 run_host.py "${RUN[$b]}" "$k" | tail -n +2)
         if [[ ${1:-} == --bless ]]; then

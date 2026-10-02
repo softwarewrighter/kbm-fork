@@ -6,12 +6,12 @@
 #define kx (mx?nx/mx:nx)
 #define _(n) __attribute((vector_size(1<<n),aligned(1)))
 typedef char V _(6),i0,g4 _(4),g5 _(5),g6 _(6);typedef unsigned short i1;typedef unsigned i2,i4 _(4),i5 _(5),i6 _(6);
-typedef unsigned long U,i3,j4 _(4),j6 _(6),(*Uf)(U),(*Ug)(i2,U),(*Uh)(i2,V*),(*UF)(U,U),U;typedef int s6 _(6);typedef float e2,e5 _(5),e6 _(6);
+typedef unsigned long long U,i3,j4 _(4),j6 _(6),(*Uf)(U),(*Ug)(i2,U),(*Uh)(i2,V*),(*UF)(U,U),U;typedef int s6 _(6);typedef float e2,e5 _(5),e6 _(6);
 #undef _
 extern U tn(i2,i2);
 #define _(z) ({z;}) //_$ bfghijlmrtx CDFGPRW UV type(UV)
 #define $(b,z) if(b){z;}else
-#define b(i) ((1L<<(i))-1)
+#define b(i) ((1LL<<(i))-1)
 #define f(g,z) D(U,g,z,Ux)
 #define g(g,z) D(U,g,z,ii,Ux)
 #define h(b,z) {i2 $=b;ih=0;W(h<$){z;++h;}}
@@ -39,7 +39,7 @@ BA={4,5,6,7,0,1,2,3,12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3,12,13,14,15,8,9,10,11,
 #define _D(t,g,z,x...) static t g(x){return _(z);}
 #define _U(g,z,x...) _D(U,g,z,x)
 #define _f(g,z) _U(g,z,U x)
-_f(nu,B(popcountl)(x))_f(iu,x?B(ctzl)(x):64)_f(ju,x?64-B(clzl)(x):0)
+_f(nu,B(popcountll)(x))_f(iu,x?B(ctzll)(x):64)_f(ju,x?64-B(clzll)(x):0)
 #define G_(g,z) U g(ii,Ua,Ux){return({z;});}
 #define U_(g,z,x...) U g(x){return _(z);}
 #define _Z(g,z,x...) static void g(x){z;}
