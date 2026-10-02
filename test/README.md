@@ -33,6 +33,15 @@ See also `docs/k-on-sw-os-ml.md` for the plan to run k on sw-os-ml.
   into one 64-bit word, so `U` is `unsigned long long` (was `unsigned long`,
   32 bits on ILP32). Identical code on 64-bit targets.
 
+## Heap size (`ksrc/kheap.h`)
+
+`-DKHEAP=n` (with `-DKSYS`) sizes k's heap at 64·2^n bytes with n buddy
+classes, so every block is inside the array; `-DKOBJ=n` sets 2^n object
+handles (8 bytes each, max 12). Exhaustion prints `wsfull` and exits.
+Without `KHEAP` the original layout is used unchanged (1 GiB, 30 classes,
+4096 handles, no checks). `run-golden.sh` checks KHEAP=12 (256 KiB) against
+the goldens and the two `test/limits/` exhaustion cases.
+
 ## Golden transcripts
 
 `test/golden/*.k` with `.expected` produced by the avx512 build

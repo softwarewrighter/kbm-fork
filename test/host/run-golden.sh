@@ -92,4 +92,19 @@ for k in ../golden/*.k; do
         fi
     done
 done
+
+# Heap and handle limits (ksrc/kheap.h), on the fast native x86v3 build:
+# small heaps still pass the goldens, and exhaustion stops with "wsfull"
+# instead of writing past the end.
+kbuild h12 -march=x86-64-v3 -DKSYS -DKHEAP=12
+ld.lld -static build/z-h12.o build/a-h12.o build/ks-x86v3.o -o build/k-h12
+kbuild obj4 -march=x86-64-v3 -DKSYS -DKHEAP=12 -DKOBJ=4
+ld.lld -static build/z-obj4.o build/a-obj4.o build/ks-x86v3.o -o build/k-obj4
+got=$(K_STEP=0.5 python3 run_host.py build/k-h12 ../golden/basic.k | tail -n +2)
+if diff -q ../golden/basic.expected <(printf '%s\n' "$got") >/dev/null; then echo "PASS KHEAP=12 (256 KiB) basic.k"; else echo "FAIL KHEAP=12 basic.k"; fail=1; fi
+check_full() { # name, binary, script
+    if K_STEP=0.5 python3 run_host.py "$2" "$3" | tail -1 | grep -qx wsfull; then echo "PASS $1 -> wsfull"; else echo "FAIL $1 (no wsfull)"; fail=1; fi
+}
+check_full "heap exhaustion, KHEAP=12" build/k-h12 ../limits/heap.k
+check_full "handle exhaustion, KOBJ=4" build/k-obj4 ../limits/handles.k
 exit $fail

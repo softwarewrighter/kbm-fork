@@ -1,6 +1,7 @@
 #include"a.h"//+-*%&|<>=~. !@? #_ ^, [+-*%_~. &| <>=?^ @, #!] ERZ(a%1+E-x x%Sx:Ex-Mx)
-Z2 b[]={6,0,3,5,5,0,0,6},o;ZV _[1<<24];ZU O[1<<12],m[30],W;_Z(k_,P(P[0],)P[0]=-1;i(1<<12,O[i]=i+1)i(30,m[i]=(U)_+64*b(i))i(8,P[i]=PQ()[0])i(1e4,PQ()))_g(_m,W-=1<<i;*(U*)x=m[i];m[i]=x)
-_i(m_,Ux=m[i];P(x,m[i]=*(U*)x;W+=1<<i;x)30-1>i?_m(i,m_(i+1))+(64LL<<i):0)_g(hn,x<<=b[i];512<x?ju(x-1)-9:0)U_(tn,k_();ii=hn(t,n);t(8+t,n|(U)r(o,o=O[o];O[r]=(U)i<<59|m_(i))<<48),it,in)
+#include"kheap.h"//heap/handle sizes; see kheap.h
+Z2 b[]={6,0,3,5,5,0,0,6},o;ZV _[1<<KH]KALIGN;ZU O[1<<KOBJ],m[KC],W;_Z(k_,P(P[0],)P[0]=-1;i(1<<KOBJ,O[i]=i+1)i(KC,m[i]=(U)_+64*b(i))i(8,P[i]=PQ()[0])i(1e4,PQ()))_g(_m,W-=1<<i;*(U*)x=m[i];m[i]=x)
+_i(m_,KOOM(i)Ux=m[i];P(x,m[i]=*(U*)x;W+=1<<i;x)KC-1>i?_m(i,m_(i+1))+(64LL<<i):KFULL)_g(hn,x<<=b[i];512<x?ju(x-1)-9:0)U_(tn,k_();ii=hn(t,n);t(8+t,n|(U)r(o,KOBJCHK o=O[o];O[r]=(U)i<<59|m_(i))<<48),it,in)
 _f(_r,P(63&rx,--rx)if(!tx)i(nx,Ua=xU[i];if(!aa)_r(a))_m(rx>>59,(U)sx);rx=o;o=4095&x>>48)_f(r_,ax?x:(++rx,x))f(R1,i(nx*!tx,r_(xU[i]))x)f(v,ax|!tx|mx?R(ax*tx,1,*rU=x):mz(1,x))
 g(nz,R(!x?3:3>x?4:tx,i,VR=rV;J(Nr,R_=$4(l(3,x),I2|j<<4,C(e6,I2|j<<4)/(e2)i,(e6)(127<<23|(i6)PQ()>>9)-1,3>tx?gx-z0:ix-z2))))inx(dz,_x(mz(mx,r(tn(tx,i)-i+n,ds(Nx,r0,x0)))))
 _F(iz,Qz(2>tx)Uu;VX=sx;J(Nx,$3(tx-2,P(u=bg(ga==*X),l(nx,64*j|iu(u))),P(u=bi(ia==Ix),l(nx,16*j|iu(u))),P(u=bg(ia<Ix),l(nx,16*j|iu(u))));++X)nx)f(uz,63&rx?(--rx,mt(tx,x)):x)

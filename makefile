@@ -42,4 +42,4 @@ bochs:$(img)
 disasm:
 	objdump -drwC -Mintel -S k | less
 clean:
-	rm -rf k *.o *.s $(img) $(app) ?.[ch] kvec.h ksys.h z.k .flavor
+	rm -rf k *.o *.s $(img) $(app) ?.[ch] kvec.h ksys.h kheap.h z.k .flavor
