@@ -36,7 +36,8 @@ M33_HARD="--target=thumbv8m.main-none-eabihf -mcpu=cortex-m33 -mfloat-abi=hard -
 M33_SOFTFP="--target=thumbv8m.main-none-eabi -mcpu=cortex-m33 -mfloat-abi=softfp -mfpu=fpv5-sp-d16 -mthumb"
 
 libk() { # abi-name, clang flags, k flags -> dist/libk-<abi>.a
-    local abi=$1 tf=$2 kf=$3
+    # Override k flags per ABI, e.g. KFLAGS_rv32imafc_ilp32f="-DKHEAP=12 -DKOBJ=10"
+    local abi=$1 tf=$2 kf=$3 var="KFLAGS_${1//-/_}"; kf=${!var:-$kf}
     clang $KCF $tf $kf -c "$K/a.c" -o "$B/a-$abi.o"
     clang $KCF $tf $kf -c "$K/z.c" -o "$B/z-$abi.o" 2>/dev/null
     rm -f "$D/libk-$abi.a"; llvm-ar rcs "$D/libk-$abi.a" "$B/a-$abi.o" "$B/z-$abi.o" 2>/dev/null ||
