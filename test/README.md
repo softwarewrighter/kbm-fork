@@ -9,6 +9,9 @@ the original BareMetal build: `make` still produces a byte-identical `k.app`.
 | --- | --- |
 | `test/host/run-golden.sh` | k built five ways passes the same golden transcripts: **avx512** (kbm as shipped, native; skipped on hosts without AVX-512 VBMI2), **x86v3** (portable, AVX2, no zmm), **aarch64** (Cortex-A72, `qemu-aarch64`), **rv64** (`rv64gc`, `qemu-riscv64`; e.g. LicheeRV Nano), **armv7** (32-bit Cortex-A7 + NEON, `qemu-arm`; e.g. Luckfox Pico RV1103). Also runs `kvec_diff` on AVX-512 hosts. |
 | `test/qemu-portable.sh [--test]` | **The Mac path.** `make PORTABLE=1` kbm on *current* BareMetal (virtio-blk) under QEMU, CPU Westmere, TCG. Interactive, or `--test` diffs the goldens. Needs `MEM` >= 1536 (default 2048). |
+| `boards/linux/build.sh --test` | Static, libc-free k for LicheeRV Nano (rv64, A53) and Luckfox RV1103 with board-sized heaps; goldens under qemu-user. `boards/linux/test-on-board.sh` runs them on a real board over `ssh -tt`. |
+| `boards/mcu/build.sh --test` | Bare-metal k (no OS): RV32IMAFC (ESP32-P4 ISA), RV32IMAC soft-float, Cortex-M33 + FPU (RP2350), plus GCC-linked builds of the shipped `dist/libk-*.a` as ESP-IDF / Pico SDK would link them. Goldens in QEMU. |
+| `test/drive_serial.py` | Goldens against a real board over a serial port (pyserial). |
 | `test/kvec_diff.c` | Each portable helper in `ksrc/kvec.h` vs the AVX-512 instruction it replaces, 20,000 random inputs each. |
 | `test/pin-baremetal-2024.sh` | Rebuilds the Dec-2024 BareMetal set kbm was written against (see below for why HEAD fails). |
 | `test/make-serial-image.sh` | Disk image that boots that BareMetal straight into k with the console on COM1. Under QEMU it reaches k and faults `#UD` on the first AVX-512 instruction, as expected for TCG. |
@@ -17,7 +20,8 @@ Requirements: clang + lld, an AVX-512 (VBMI2) host for the reference build,
 `qemu-user` (aarch64, riscv64, arm), ARM libgcc for armv7
 (`libgcc-13-dev-armhf-cross`), nasm/mtools for the BareMetal images.
 
-See also `docs/k-on-sw-os-ml.md` for the plan to run k on sw-os-ml.
+See also `docs/k-on-sw-os-ml.md` (k on sw-os-ml) and `docs/hw-bringup/`
+(plans for the real boards).
 
 ## The port boundary
 
