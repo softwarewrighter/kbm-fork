@@ -52,6 +52,11 @@ AS(ut,"rdtsc;shl $32,%rdx;or %rdx,%rax;")
 AS(ut,"mrs x0,cntvct_el0\nmov x1,100\nmul x0,x0,x1\n")
 #elif __riscv && __riscv_xlen==64
 AS(ut,"rdtime a0\n")
+#elif __riscv && __riscv_xlen==32
+// 64-bit cycle count from two 32-bit halves; re-read if the high half rolled.
+ZU ut(void){unsigned hi,lo,hi2;do{__asm__ volatile("rdcycleh %0":"=r"(hi));
+ __asm__ volatile("rdcycle %0":"=r"(lo));__asm__ volatile("rdcycleh %0":"=r"(hi2));}
+ while(hi!=hi2);return (U)hi<<32|lo;}
 #elif __arm__
 // No user-readable cycle counter is guaranteed on 32-bit ARM Linux;
 // \t timings read 0. A host can provide one through k_sys later.
