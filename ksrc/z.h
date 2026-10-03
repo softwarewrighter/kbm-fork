@@ -1,3 +1,10 @@
+#ifndef __clang__ //GNU as treats $-prefixed names as ARM mapping symbols ($t,$d...), so a pointer to
+//function $e lost its Thumb bit and calling it faulted. Rename k's four $-named functions for GCC.
+#define $e kfmt_e
+#define $i kfmt_i
+#define $m kfmt_m
+#define $q kfmt_q
+#endif
 #define Qs(b) P(b,ws(s))
 #define Q(z) r(z,P(!r,0))
 #define mn (ma?:na)

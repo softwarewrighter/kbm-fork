@@ -17,6 +17,11 @@
 # The goldens characterize *current* behavior (`nyi` verbs, the `?.?` float
 # stub) so any port is diffed against what k does today.
 set -euo pipefail
+# GCC needs these to accept k's style (clang accepts it as is): implicit
+# integer-vector conversions, k's pointer punning, clang-only attributes,
+# and 32-bit pointers widened into k's 64-bit words.
+KGCC_FLAGS="-flax-vector-conversions -fno-strict-aliasing -fno-builtin -Wno-incompatible-pointer-types
+  -Wno-attributes -Wno-psabi -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast -Wno-parentheses"
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 K="$HERE/../../ksrc"
 cd "$HERE"
@@ -71,8 +76,16 @@ clang -O2 -march=icelake-client -funsigned-char -ffreestanding -nostdlib -fno-bu
 if build/kvec_diff >build/kvec_diff.out; then echo "PASS kvec_diff (8 helpers == AVX-512)"; else cat build/kvec_diff.out; fail=1; fi
 else echo "SKIP avx512 build and kvec_diff (host CPU lacks AVX-512)"; fi
 BUILDS="x86v3 aarch64 rv64 armv7"; [[ $HAVE512 == 1 ]] && BUILDS="avx512 $BUILDS"
+# GCC build of the same sources (k builds with clang or GCC; see ksrc/README.md)
+if command -v gcc >/dev/null; then
+    GF="-Ofast $KGCC_FLAGS -funsigned-char -fno-unwind-tables -nostdlib -ffreestanding -fomit-frame-pointer -fno-pie -DKSYS -I$K -march=x86-64-v3"
+    gcc $GF -c "$K/a.c" -o build/a-gcc.o && gcc $GF -c "$K/z.c" -o build/z-gcc.o
+    gcc -O2 -ffreestanding -nostdlib -fno-pie -c ksys-linux.c -o build/ks-gcc.o
+    gcc -static -nostdlib -no-pie build/z-gcc.o build/a-gcc.o build/ks-gcc.o -lgcc -o build/k-gcc
+    BUILDS="$BUILDS gcc"
+fi
 
-declare -A RUN=([avx512]="build/k-avx512" [x86v3]="build/k-x86v3"
+declare -A RUN=([avx512]="build/k-avx512" [x86v3]="build/k-x86v3" [gcc]="build/k-gcc"
                 [aarch64]="qemu-aarch64 -cpu cortex-a72 build/k-aarch64"
                 [rv64]="qemu-riscv64 -cpu rv64 build/k-rv64"
                 [armv7]="qemu-arm -cpu cortex-a7 build/k-armv7")

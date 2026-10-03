@@ -5,7 +5,7 @@
 #define Q(n,z)    _x(r(tn(0,n ),U*R=r0;j(nr,R_=_(z))))
 #define H(t,b,z)  _x(r(tn(t,nx),b*R=r0;j(nx,R_=_(z))))
 #define I(z) r(uz(x),U*R=r0;U*X=x0;J(nx,R_=_(z)))
-#define V(z) r(uz(x),V*R=r0;V*X=x0;J(Nx,R_=_(z)))
+#define V(z) r(uz(x),V*R=r0;V*X=x0;J(Nx,R_=(V)_(z)))
 #define sx ((i0*)(0x7fffffffffc0&rx))
 #include"_.h"//to[mn] 4/12/48 //xV[Nx>>6]|=(i0)(Nx%64)<=I0 
 #if __AVX512F__
@@ -31,7 +31,7 @@ g(mt,mz(mx,tn(i,nx)))
 #define J(n,z) j(n6(n),z)
 #define X_ *X++
 #define R_ *R++
-VF(SG,a+b)VF(SI,(i6)a+b)VF(SE,(e6)a+b)j6 P,Q={0xc6a4a7935bd1e995};_D(j6,PQ,Q^=P;P=(P<<55|P>>9)^Q^Q<<14;Q=Q<<37|Q>>27;P+Q)F(Q0,0)f(q0,0)_U(ds,J(n,R_=X_)n,in,VR,VX)
+VF(SG,a+b)VF(SI,(V)((i6)a+(i6)b))VF(SE,(V)((e6)a+(e6)b))j6 P,Q={0xc6a4a7935bd1e995};_D(j6,PQ,Q^=P;P=(P<<55|P>>9)^Q^Q<<14;Q=Q<<37|Q>>27;P+Q)F(Q0,0)f(q0,0)_U(ds,J(n,R_=X_)n,in,VR,VX)
 #define ra O[4095&a>>48]
 #define rx O[4095&x>>48]
 #define Nx n3(nx<<bx) 

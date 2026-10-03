@@ -57,6 +57,9 @@ AS(ut,"rdtime a0\n")
 ZU ut(void){unsigned hi,lo,hi2;do{__asm__ volatile("rdcycleh %0":"=r"(hi));
  __asm__ volatile("rdcycle %0":"=r"(lo));__asm__ volatile("rdcycleh %0":"=r"(hi2));}
  while(hi!=hi2);return (U)hi<<32|lo;}
+#elif __XTENSA__
+// CCOUNT: 32-bit cycle counter (wraps after ~18 s at 240 MHz; fine for \t).
+ZU ut(void){unsigned kcc;__asm__ volatile("rsr %0, ccount":"=a"(kcc));return kcc;}
 #elif __arm__
 // No user-readable cycle counter is guaranteed on 32-bit ARM Linux;
 // \t timings read 0. A host can provide one through k_sys later.

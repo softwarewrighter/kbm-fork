@@ -29,6 +29,7 @@ the original AVX-512 k produces:
 | bare-metal RV32IMAC soft-float (RP2350 RISC-V) | qemu-system-riscv32 virt | same |
 | bare-metal Cortex-M33 + FPU (RP2350 Arm) | qemu-system-arm mps2-an505 | same |
 | GCC-built glue + clang `libk.a` (ESP-IDF ABI; Pico SDK softfp ABI) | both of the above | same |
+| k compiled from source by GCC (RV32IMAFC; Cortex-M33 softfp; x86-64 Linux) | QEMU / native | `boards/mcu/build.sh --test`, `test/host/run-golden.sh` |
 | x86-64-v2 Linux (Atomic Pi) | qemu-x86_64 -cpu Westmere | `boards/linux/build.sh --test` |
 | BareMetal + k from a UEFI USB stick (Atomic Pi) | OVMF, USB storage only, Westmere | `boards/x86-baremetal/test-uefi.sh` |
 | serial test driver, banner and `--attached` modes | QEMU board on a pty | `test/drive_serial.py` |
@@ -40,7 +41,7 @@ float as `?.?`, so the goldens cannot see them), and performance.
 ## How the pieces fit
 
 ```
-ksrc/          k itself (Whitney's C) + kvec.h (portable SIMD helpers),
+ksrc/          k itself (Whitney's C; clang or GCC) + kvec.h (portable SIMD helpers),
                ksys.h (all OS calls -> k_sys()), kheap.h (heap size, wsfull)
 boards/linux/  k_sys = Linux syscalls (test/host/ksys-linux.c); static, no libc
 boards/mcu/    k_sys = boards/mcu/common/ksys-bare.c over three functions:
@@ -49,10 +50,11 @@ boards/mcu/    k_sys = boards/mcu/common/ksys-bare.c over three functions:
 test/golden/   the transcripts every build must reproduce
 ```
 
-**k only compiles with clang.** Board SDKs use GCC, so SDK projects link the
-prebuilt `boards/mcu/dist/libk-<abi>.a` and compile only `ksys-bare.c` and
-their own `con_*` functions. That mixed link is already verified for both
-SDK ABIs. Do not try to add k's `.c` files to an SDK build.
+**k compiles with clang or GCC.** An SDK project (GCC) can either add
+`ksrc/a.c` and `ksrc/z.c` to its build with the GCC flags in
+`ksrc/README.md` (verified in QEMU for the P4's RV32IMAFC and the Pico SDK's
+Cortex-M33 softfp ABI), or link the prebuilt `boards/mcu/dist/libk-<abi>.a`.
+Either way it also compiles `ksys-bare.c` and its own `con_*` functions.
 
 ## Tools on the bring-up machine
 
@@ -90,7 +92,6 @@ SDK ABIs. Do not try to add k's `.c` files to an SDK build.
   partition. Ask the human before reflashing a board's bootloader or
   erasing flash beyond the application region.
 - Keep the ksrc/ changes minimal and guarded. The original kbm build must
-  stay byte-identical: `make B=<pinned BareMetal>` then compare
-  `sha256sum` of `k.app` with `c1d80628...` (see `test/README.md`).
+  stay byte-identical: `test/check-kapp-hash.sh <pinned BareMetal>`.
 - If something in a plan is wrong for the real board (a pin, a config
   name, an SDK API), fix the plan in the same commit as the code.

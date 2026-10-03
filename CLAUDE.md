@@ -10,10 +10,11 @@ k (Arthur Whitney's k edu, `ksrc/`) on BareMetal-OS, extended on branch
 - Every build must reproduce `test/golden/basic.expected`. Run
   `test/host/run-golden.sh`, `boards/linux/build.sh --test` and
   `boards/mcu/build.sh --test` before and after changes.
-- k only compiles with clang. SDKs (GCC) link `boards/mcu/dist/libk-*.a`.
-- The original BareMetal build must stay byte-identical: `make
-  B=<Dec-2024 BareMetal from test/pin-baremetal-2024.sh>` gives a `k.app`
-  with sha256 `c1d8062886cdb222...`.
+- k compiles with clang or GCC (GCC flags and caveats: `ksrc/README.md`).
+  SDK projects can compile it or link `boards/mcu/dist/libk-*.a`.
+- The original BareMetal build must stay byte-identical:
+  `test/check-kapp-hash.sh <Dec-2024 BareMetal from test/pin-baremetal-2024.sh>`
+  (it pins the build date: k's banner embeds `__DATE__`).
 - k's macros use most one- and two-letter names (`b`, `f`, `nr`, `x`...):
   avoid them as identifiers or macro arguments in code that includes
   ksrc headers, and never put a bare comma inside a k macro argument.

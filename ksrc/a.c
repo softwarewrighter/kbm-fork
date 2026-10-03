@@ -1,10 +1,10 @@
 #include"b.c"//+-*%&|<>=~ .! @? #_ ^,
 _Z(m6,i(n/4,Ez[4]={};EX=x;h(m,i(4,zi+=a[h]*X[i])X+=n)i(4,R_=zi)x+=4)i(n%4,e6 e={};EX=x++;h(m,e+=a[h]**X;X+=n)R_=e),im,in,e6*R,e2*a,e6*x)F(mv,R(tx,ma,e2*R=rV;i(ma,R_=EE(a2+i*nx,x))))
 F(vm,ik=kx;R(tx,k,m6(mx,n4(k),rV,aV,xV)))F(mm,ik=kx;M(ma,k,i(ma,m6(mx,n4(k),r2+k*i,a2+mx*i,xV))))F(at,Qn(ka!=mn)_a(_x(ma|mx?(ma?mx?mm:mv:vm)(a,mx?x:P0(x)):te(EE(aV,x)))))
-_F(S,Qn(ma!=mx|na!=nx)_a(_x(R(tx,kx,VR=rV;in=nr/16;i(n/4,Ez[4]={};EA=aV+4*i;EX=xV+4*i;i(mx,i(4,zi+=AZ*X_)A+=n-4;X+=n-4)i(4,R_=zi))))))
+_F(S,Qn(ma!=mx|na!=nx)_a(_x(R(tx,kx,VR=rV;in=nr/16;i(n/4,Ez[4]={};EA=aV+4*i;EX=xV+4*i;i(mx,i(4,zi+=AZ*X_)A+=n-4;X+=n-4)i(4,R_=(V)zi))))))
 G(VV,Qn(ka!=mn)_x(a)) //Qz(i&2!=i)it=ma;if(t){Uu=a;a=x;x=u;}ik=kx;_a(_x(M(mx,k,h(mx,VR=r2+h*k;VX=x2+h*k;$(t,EA=a2;$(i,J(4*k,R_=AZ*Ex))J(4*k,R_=AZ+Ex))$(i,J(4*k,R_=ae[h]*Ex))J(4*k,R_=ae[h]+Ex))))))
 g(T,ax?4>i?t(i,ix):te(ex):t_(--i>tx?T(i,x):x))f(T4,4>tx?T(4,x):x)G(E4,ax?_v(E4(i,a,v(x))):eE(i,a?T4(a):a,P0(T4(x))))G(Q4,P(a,Qr(aa)(ma&&mx?S:at)(T4(a),x))_x(te(se(x)/nx)))
-#define A(G,I,E) 4>i?V(4>tx?$3(i,I+Ix,I-Ix,(I)*Ix):$4(i,E+Ex,E-Ex,(E)*Ex,(E)/Ex)):6>i?V(3>tx?MG(G,*X):MI(I,*X)):3>tx?_V(1,U,bg($3(i-6,G<*X,G>*X,G==*X))):_V(1,i1,bi($3(i-6,I<*X,I>*X,I==*X)))
+#define A(G,I,E) 4>i?V(4>tx?$3(i,I+Ix,I-Ix,(I)*Ix):(i6)$4(i,E+Ex,E-Ex,(E)*Ex,(E)/Ex)):6>i?V(3>tx?MG(G,*X):MI(I,*X)):3>tx?_V(1,U,bg($3(i-6,G<*X,G>*X,G==*X))):_V(1,i1,bi($3(i-6,I<(i6)*X,I>(i6)*X,I==(i6)*X)))
 G(av,A(ga-z0,ia-z2,ea-ze))_U(Av,A(AZ,(i6)AZ,(e6)AZ),ii,VA,Ux)G(vv,_a(Av(i,a0,x)))g(pe,P(1==tx,pB(i,x))Ua=i?*xU:0;Uc=b(1<<bx);x=i--?Av(i^2>i-6,x0-(1<<bx-3),x):_x(ln(-1,nx,x));*xU=c&a|~c&*xU;x)
 G(a9,P(3<tx,_v(av(i,a,v(x))))ij=ia;6>i?t(tx,$6(i,j+ix,j-ix,j*ix,0,l(j,ix),m(j,ix))):tb($3(i-6,j<ix,j>ix,j==ix)))f(y,4>tx?ti(-ix):te(-ex))
 G(Z,P(!tx,Q(nx,Z(i,a,a_(j,x))))it=m(3>i?3:4>i?4:0,m(ta,tx));a=t>ta?T(t,a):a;x=t>tx?T(t,x):x;aa<ax?av(i-(1==i)^2>i-6,1==i?y(x):x,a):(aa?ax?a9:av:!ma^!mx?VV:vv)(i,a,x))

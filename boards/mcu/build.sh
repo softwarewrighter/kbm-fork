@@ -6,10 +6,11 @@
 #                                 k libraries into boards/mcu/dist/
 #   boards/mcu/build.sh --test    also run the goldens in QEMU
 #
-# k itself only compiles with clang (it uses clang-only builtins), but board
-# SDKs (ESP-IDF, Pico SDK) use GCC. So k is shipped as a clang-built static
-# library, dist/libk-<abi>.a (k's main renamed k_main), and the SDK project
-# compiles only common/ksys-bare.c plus its own con_getc/con_putc/con_exit.
+# k compiles with clang or GCC. SDK projects (ESP-IDF, Pico SDK; GCC) can
+# either compile ksrc/a.c and z.c themselves with the flags in ksrc/README.md
+# (the *-gccsrc targets below prove that), or link a clang-built
+# dist/libk-<abi>.a (k's main renamed k_main). Either way they add
+# common/ksys-bare.c plus their own con_getc/con_putc/con_exit.
 #
 # Targets ("clang" = all clang + ld.lld; "gcc" = GCC glue linked against the
 # clang libk.a exactly as an SDK build would, proving the ABI match):
@@ -91,5 +92,25 @@ gcc_target rv32imafc-virt-gcc rv32-virt riscv64-unknown-elf-gcc "-march=rv32imaf
     rv32imafc-ilp32f "$QV" 768
 gcc_target m33-an505-softfp-gcc m33-an505 arm-none-eabi-gcc "-mthumb -mcpu=cortex-m33 -mfloat-abi=softfp -mfpu=fpv5-sp-d16" \
     m33-softfp "$QM" 520
+# k compiled from source by GCC (as an ESP-IDF / Pico SDK project would, no
+# prebuilt libk): the GCC flags k needs are in ksrc/README.md.
+KGCC="-Ofast -flax-vector-conversions -fno-strict-aliasing -fno-builtin -funsigned-char -ffreestanding -nostdlib
+      -Wno-incompatible-pointer-types -Wno-attributes -Wno-psabi -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+      -Wno-parentheses -DKSYS -Dmain=k_main -I$K"
+gccsrc_target() { # name, platform dir, gcc driver, gcc flags, k flags, qemu, budget
+    local name=$1 plat=$2 cc=$3 gf=$4 kf=$5 qemu=$6 budget=$7 srcs=()
+    $cc $KGCC $gf $kf -c "$K/a.c" -o "$B/a-$name.o"
+    $cc $KGCC $gf $kf -c "$K/z.c" -o "$B/z-$name.o"
+    for src in "$HERE/common/ksys-bare.c" "$HERE/common/libc-min.c" "$HERE/$plat"/*.c "$HERE/$plat"/*.S; do
+        [[ -f $src ]] && srcs+=("$src")
+    done
+    $cc $gf -O2 -ffreestanding -nostdlib -nostartfiles -T "$HERE/$plat/link.ld" "${srcs[@]}" \
+        "$B/a-$name.o" "$B/z-$name.o" -lgcc -o "$B/k-$name.elf" 2> >(grep -v -i 'deprecated\|RWX' >&2)
+    report "$name" "$B/k-$name.elf" "$budget"; gtest "$name" "$B/k-$name.elf" "$qemu"
+}
+gccsrc_target rv32imafc-virt-gccsrc rv32-virt riscv64-unknown-elf-gcc "-march=rv32imafc -mabi=ilp32f -mcmodel=medany" \
+    "-DKHEAP=13 -DKOBJ=10" "$QV" 768
+gccsrc_target m33-an505-softfp-gccsrc m33-an505 arm-none-eabi-gcc "-mthumb -mcpu=cortex-m33 -mfloat-abi=softfp -mfpu=fpv5-sp-d16" \
+    "-DKHEAP=12 -DKOBJ=10" "$QM" 520
 (cd "$D" && sha256sum libk-*.a > SHA256SUMS)
 exit $fail
