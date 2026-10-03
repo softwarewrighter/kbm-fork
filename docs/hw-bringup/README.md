@@ -12,6 +12,7 @@ Read this file first, then the board's own plan:
 | Sipeed LicheeRV Nano | SG2002: T-Head C906 (RV64GC) + Cortex-A53 | static Linux binary | [linux-boards.md](linux-boards.md) |
 | Luckfox Pico (RV1103) | Cortex-A7, 32-bit, 64 MB | static Linux binary | [linux-boards.md](linux-boards.md) |
 | ESP32-P4 dev board | 2x RV32IMAFC, 768 KB SRAM (+ PSRAM) | bare metal in ESP-IDF | [esp32-p4.md](esp32-p4.md) |
+| Atomic Pi | Atom x5-Z8350 (x86-64, SSE4.2, no AVX), 2 GB | Linux binary, or BareMetal (kbm proper) from a UEFI USB stick | [atomic-pi.md](atomic-pi.md) |
 | Seeed XIAO RP2350 / Pico 2 | 2x Cortex-M33 + FPU, 2x Hazard3 RV32IMAC; 520 KB | bare metal in the Pico SDK | [rp2350.md](rp2350.md) |
 
 ## What is already proven (in emulation)
@@ -28,6 +29,8 @@ the original AVX-512 k produces:
 | bare-metal RV32IMAC soft-float (RP2350 RISC-V) | qemu-system-riscv32 virt | same |
 | bare-metal Cortex-M33 + FPU (RP2350 Arm) | qemu-system-arm mps2-an505 | same |
 | GCC-built glue + clang `libk.a` (ESP-IDF ABI; Pico SDK softfp ABI) | both of the above | same |
+| x86-64-v2 Linux (Atomic Pi) | qemu-x86_64 -cpu Westmere | `boards/linux/build.sh --test` |
+| BareMetal + k from a UEFI USB stick (Atomic Pi) | OVMF, USB storage only, Westmere | `boards/x86-baremetal/test-uefi.sh` |
 | serial test driver, banner and `--attached` modes | QEMU board on a pty | `test/drive_serial.py` |
 
 Not proven anywhere yet: anything on real silicon, the SDK projects
