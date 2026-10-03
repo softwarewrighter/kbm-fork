@@ -11,3 +11,5 @@ test/*.out
 /boards/*/dist/
 /boards/*/build/
 /boards/mcu/*/build/
+/boards/x86-baremetal/dist/
+/boards/x86-baremetal/build/

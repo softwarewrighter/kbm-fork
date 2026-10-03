@@ -35,12 +35,25 @@ def pump(t):
             out.extend(d)
     return True
 
-pump(0.5)
+def until_prompt(cap):
+    """Read until k is waiting for input: output ends with its ' ' prompt and
+    has been quiet for a moment. Pacing by k, not by a fixed delay, keeps slow
+    emulators from shifting answers onto the wrong input line."""
+    end, quiet = time.time() + cap, 0.0
+    while time.time() < end:
+        n = len(out)
+        if not pump(0.1): return False
+        quiet = quiet + 0.1 if len(out) == n else 0.0
+        if quiet >= 0.3 and out.endswith(b" "): return True
+    return True
+
+CAP = float(os.environ.get("K_STEP_MAX", "30"))
+until_prompt(CAP)
 for line in lines:
     os.write(fd, line.encode() + b"\n")
     out.extend(b"<<" + line.encode() + b"\n")   # mark input in the transcript
-    if not pump(float(os.environ.get("K_STEP", "1.0"))): break
-pump(0.5)
+    if not until_prompt(CAP): break
+pump(0.2)
 try: os.kill(pid, 9)
 except ProcessLookupError: pass
 sys.stdout.write(out.decode("latin1").replace("\r", ""))

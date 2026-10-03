@@ -16,4 +16,8 @@ SECTIONS
 		__bss_stop = .;
 	}
 }
-
+/* Bounds of the large-code-model .lbss, where -mcmodel=large puts every
+   zero-initialized global (the .bss above stays empty). PORTABLE builds
+   zero this range at startup (sys.c); symbols only, so k.app is unchanged. */
+__lbss_start = ADDR(.lbss);
+__lbss_end = ADDR(.lbss) + SIZEOF(.lbss);

@@ -6,9 +6,10 @@ CFLAGS=-Ofast -fno-builtin -funsigned-char -fno-unwind-tables -Wno-parentheses -
 # Default: kbm as shipped (AVX-512; needs Bochs or a real AVX-512 CPU).
 # `make PORTABLE=1`: no AVX-512 (ksrc/kvec.h) and OS calls via k_sys
 # (ksrc/ksys.h -> s.asm), so it also runs under QEMU TCG, e.g. on a Mac.
+# Add KHEAP=n for a smaller heap (ksrc/kheap.h), e.g. KHEAP=22 for 256 MiB.
 ifdef PORTABLE
 ARCH=-march=x86-64-v2
-KFLAGS=-DKSYS -Wno-psabi
+KFLAGS=-DKSYS -Wno-psabi $(if $(KHEAP),-DKHEAP=$(KHEAP))
 NFLAGS=-dKSYS
 else
 ARCH=-march=icelake-client

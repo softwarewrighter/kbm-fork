@@ -29,6 +29,16 @@ def wait_for(pat, t, since=0):
         pump(0.05)
     return buf.find(pat, since) >= 0
 
+# K_PRE="loadr;1;exec": Monitor commands to type before k starts (BareMetal
+# booted via UEFI keeps k in its RAM drive and does not auto-run it).
+pre = [c for c in os.environ.get("K_PRE", "").split(";") if c]
+if pre:
+    if not wait_for(b"> ", 300):
+        p.kill(); sys.exit("Monitor prompt not seen:\n" + buf.decode("latin1"))
+    for cmd in pre:
+        for ch in cmd.encode() + b"\r":
+            p.stdin.write(bytes([ch])); p.stdin.flush(); pump(0.2)
+        pump(1)
 if not wait_for(b"whitney", 300):
     p.kill(); sys.exit("k banner not seen:\n" + buf.decode("latin1"))
 start = buf.index(b"whitney")

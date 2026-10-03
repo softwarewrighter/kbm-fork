@@ -11,6 +11,8 @@
 #   licheerv-nano-rv64   SG2002 C906 (RV64GC)      256 MB RAM -> KHEAP=20 (64 MiB)
 #   licheerv-nano-a53    SG2002 Cortex-A53 (ARM boot mode)    -> KHEAP=20
 #   luckfox-rv1103       RV1103 Cortex-A7 (32-bit), 64 MB RAM -> KHEAP=18 (16 MiB)
+#   atomicpi-x86v2       Atom x5-Z8350 (SSE4.2, no AVX), 2 GB  -> KHEAP=20 (64 MiB)
+#                        tested under qemu-x86_64 -cpu Westmere (no AVX either)
 # Override with KHEAP_<NAME>=n, e.g. KHEAP_luckfox_rv1103=17.
 set -euo pipefail
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
@@ -26,6 +28,7 @@ CF="-Ofast -fno-builtin -funsigned-char -fno-unwind-tables -Wno-parentheses -Wno
 BOARDS=(
   "licheerv-nano-rv64|--target=riscv64-linux-gnu -march=rv64gc -mabi=lp64d|20|qemu-riscv64 -cpu rv64|"
   "licheerv-nano-a53|--target=aarch64-linux-gnu -mcpu=cortex-a53|20|qemu-aarch64 -cpu cortex-a53|"
+  "atomicpi-x86v2|--target=x86_64-linux-gnu -march=x86-64-v2|20|qemu-x86_64 -cpu Westmere|"
   "luckfox-rv1103|--target=armv7a-linux-gnueabihf -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard|18|qemu-arm -cpu cortex-a7|LIBGCC_ARM"
 )
 LIBGCC_ARM=$(ls /usr/lib/gcc-cross/arm-linux-gnueabihf/*/libgcc.a 2>/dev/null | head -1 || true)
