@@ -11,7 +11,9 @@ the original BareMetal build: `make` still produces a byte-identical `k.app`.
 | `test/qemu-portable.sh [--test]` | **The Mac path.** `make PORTABLE=1` kbm on *current* BareMetal (virtio-blk) under QEMU, CPU Westmere, TCG. Interactive, or `--test` diffs the goldens. Needs `MEM` >= 1536 (default 2048). |
 | `boards/linux/build.sh --test` | Static, libc-free k for LicheeRV Nano (rv64, A53) and Luckfox RV1103 with board-sized heaps; goldens under qemu-user. `boards/linux/test-on-board.sh` runs them on a real board over `ssh -tt`. |
 | `boards/mcu/build.sh --test` | Bare-metal k (no OS): RV32IMAFC (ESP32-P4 ISA), RV32IMAC soft-float, Cortex-M33 + FPU (RP2350), plus GCC-linked builds of the shipped `dist/libk-*.a` as ESP-IDF / Pico SDK would link them. Goldens in QEMU. |
-| `test/drive_serial.py` | Goldens against a real board over a serial port (pyserial). |
+| `test/drive_serial.py` | Goldens against a real board over a serial port (pyserial); `--reset` resets ESP32 boards via RTS. |
+| `test/check-kapp-hash.sh` | Original kbm `k.app` is byte-identical (pins the build date: k's banner embeds `__DATE__`). |
+| `boards/esp-idf/test-qemu.sh` | ESP-IDF build of k (ESP32-S3) in Espressif's QEMU. |
 | `test/kvec_diff.c` | Each portable helper in `ksrc/kvec.h` vs the AVX-512 instruction it replaces, 20,000 random inputs each. |
 | `test/pin-baremetal-2024.sh` | Rebuilds the Dec-2024 BareMetal set kbm was written against (see below for why HEAD fails). |
 | `test/make-serial-image.sh` | Disk image that boots that BareMetal straight into k with the console on COM1. Under QEMU it reaches k and faults `#UD` on the first AVX-512 instruction, as expected for TCG. |
@@ -47,6 +49,10 @@ Without `KHEAP` the original layout is used unchanged (1 GiB, 30 classes,
 the goldens and the two `test/limits/` exhaustion cases.
 
 ## Golden transcripts
+
+`basic.k` runs in a 128 KiB heap; `big.k` needs >= 256 KiB (a 128 KB
+vector), so small-heap targets run only `basic.k`.
+
 
 `test/golden/*.k` with `.expected` produced by the avx512 build
 (`run-golden.sh --bless`). They record current behavior, including verbs that

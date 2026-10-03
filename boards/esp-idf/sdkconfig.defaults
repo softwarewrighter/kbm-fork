@@ -1,0 +1,7 @@
+# Defaults for every target (see sdkconfig.defaults.<target> for chip ones).
+# k runs pinned to core 1; don't let the task watchdog complain about core 1's
+# idle task while k computes.
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+# Quieter boot log, so the console is mostly k.
+CONFIG_LOG_DEFAULT_LEVEL_WARN=y
+CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y

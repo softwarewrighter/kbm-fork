@@ -5,9 +5,11 @@ k (Arthur Whitney's k edu, `ksrc/`) on BareMetal-OS, extended on branch
 
 - Start with `test/README.md` (what exists and how it is tested) and
   `docs/hw-bringup/README.md` (plans for real boards: LicheeRV Nano,
-  Luckfox RV1103, ESP32-P4, RP2350). `docs/k-on-sw-os-ml.md` is the
+  Luckfox RV1103, ESP32-S3, ESP32-P4, RP2350, Atomic Pi).
+  ESP32 builds: `boards/esp-idf/README.md` (ESP-IDF v5.4.x). `docs/k-on-sw-os-ml.md` is the
   design for running k on sw-os-ml.
-- Every build must reproduce `test/golden/basic.expected`. Run
+- Every build must reproduce `test/golden/basic.expected` (and `big.expected`
+  when its heap is >= 256 KiB). Run
   `test/host/run-golden.sh`, `boards/linux/build.sh --test` and
   `boards/mcu/build.sh --test` before and after changes.
 - k compiles with clang or GCC (GCC flags and caveats: `ksrc/README.md`).

@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Run a k script against k on a real board over a serial port.
 
-Usage: drive_serial.py SCRIPT.k PORT [--baud 115200] [--attached] [--boot-timeout 60]
+Usage: drive_serial.py SCRIPT.k PORT [--baud 115200] [--attached] [--reset]
+                       [--boot-timeout 60]
 
 PORT is e.g. /dev/ttyACM0 (USB CDC: RP2350, ESP32-P4 USB-Serial-JTAG) or
 /dev/ttyUSB0 (USB-UART bridge). Without --attached, the driver waits for
 k's banner ("...(c)arthur whitney(l)MIT"), so start it before resetting the
 board (or let the board reset when the port opens). With --attached, k is
-assumed to be at its prompt already.
+assumed to be at its prompt already. With --reset, the driver resets the
+board itself by pulsing RTS (the line ESP32 dev boards wire to EN, as esptool
+does), then waits for the banner.
 
 Prints the transcript in the golden format (" <<input" lines, banner
 dropped), so: drive_serial.py test/golden/basic.k /dev/ttyACM0 | diff
@@ -21,11 +24,18 @@ ap = argparse.ArgumentParser()
 ap.add_argument("script"); ap.add_argument("port")
 ap.add_argument("--baud", type=int, default=115200)
 ap.add_argument("--attached", action="store_true")
+ap.add_argument("--reset", action="store_true", help="pulse RTS to reset an ESP32 board first")
 ap.add_argument("--boot-timeout", type=float, default=60)
 args = ap.parse_args()
 
 lines = [l.rstrip("\n") for l in open(args.script) if l.strip() and not l.startswith("#")]
-port = serial.Serial(args.port, args.baud, timeout=0.05)
+port = serial.Serial()
+port.port, port.baudrate, port.timeout = args.port, args.baud, 0.05
+port.dtr = False   # deasserted: IO0 high, so a reset boots the app, not the ROM loader
+port.rts = False
+port.open()
+if args.reset:
+    port.rts = True; time.sleep(0.1); port.rts = False   # EN low, then release
 buf = bytearray()
 
 def pump(t):

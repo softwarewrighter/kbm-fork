@@ -11,7 +11,8 @@ Read this file first, then the board's own plan:
 |---|---|---|---|
 | Sipeed LicheeRV Nano | SG2002: T-Head C906 (RV64GC) + Cortex-A53 | static Linux binary | [linux-boards.md](linux-boards.md) |
 | Luckfox Pico (RV1103) | Cortex-A7, 32-bit, 64 MB | static Linux binary | [linux-boards.md](linux-boards.md) |
-| ESP32-P4 dev board | 2x RV32IMAFC, 768 KB SRAM (+ PSRAM) | bare metal in ESP-IDF | [esp32-p4.md](esp32-p4.md) |
+| ESP32-S3 (N16R8) | 2x Xtensa LX7 + FPU, 512 KB SRAM, 8 MB octal PSRAM | ESP-IDF project `boards/esp-idf` | [esp32-s3.md](esp32-s3.md) |
+| ESP32-P4 dev board | 2x RV32IMAFC, 768 KB SRAM (+ PSRAM) | ESP-IDF project `boards/esp-idf` | [esp32-p4.md](esp32-p4.md) |
 | Atomic Pi | Atom x5-Z8350 (x86-64, SSE4.2, no AVX), 2 GB | Linux binary, or BareMetal (kbm proper) from a UEFI USB stick | [atomic-pi.md](atomic-pi.md) |
 | Seeed XIAO RP2350 / Pico 2 | 2x Cortex-M33 + FPU, 2x Hazard3 RV32IMAC; 520 KB | bare metal in the Pico SDK | [rp2350.md](rp2350.md) |
 
@@ -32,6 +33,8 @@ the original AVX-512 k produces:
 | k compiled from source by GCC (RV32IMAFC; Cortex-M33 softfp; x86-64 Linux) | QEMU / native | `boards/mcu/build.sh --test`, `test/host/run-golden.sh` |
 | x86-64-v2 Linux (Atomic Pi) | qemu-x86_64 -cpu Westmere | `boards/linux/build.sh --test` |
 | BareMetal + k from a UEFI USB stick (Atomic Pi) | OVMF, USB storage only, Westmere | `boards/x86-baremetal/test-uefi.sh` |
+| ESP-IDF project, k compiled by IDF's GCC (ESP32-S3) | Espressif QEMU, no PSRAM, 128 KiB heap: basic.k | `boards/esp-idf/test-qemu.sh` |
+| ESP-IDF project builds for ESP32-P4 | build only (no P4 emulator) | `idf.py set-target esp32p4 build` |
 | serial test driver, banner and `--attached` modes | QEMU board on a pty | `test/drive_serial.py` |
 
 Not proven anywhere yet: anything on real silicon, the SDK projects
@@ -65,15 +68,16 @@ Either way it also compiles `ksys-bare.c` and its own `con_*` functions.
   (Debian/Ubuntu names). Run the emulated suites before touching hardware:
   `test/host/run-golden.sh`, `boards/linux/build.sh --test`,
   `boards/mcu/build.sh --test`.
-- Per board: ESP-IDF, Pico SDK + picotool, adb or ssh, an SD writer. See
-  each plan.
+- Per board: ESP-IDF v5.4.x, Pico SDK + picotool, adb or ssh, an SD
+  writer. See each plan.
 
 ## Acceptance (same for every board)
 
 1. `test/golden/basic.k` reproduces `test/golden/basic.expected` exactly on
-   the board, through one of:
+   the board (and `big.k`/`big.expected` when the heap is >= 256 KiB),
+   through one of:
    - `boards/linux/test-on-board.sh user@board /path/to/k` (ssh)
-   - `python3 test/drive_serial.py test/golden/basic.k /dev/ttyACM0 | diff test/golden/basic.expected -`
+   - `python3 test/drive_serial.py [--reset] test/golden/basic.k /dev/ttyACM0 | diff test/golden/basic.expected -`
 2. `test/limits/heap.k` ends in `wsfull` (not a crash or a hang) at the
    board's configured heap.
 3. Record in the board's plan file, under "Results": date, board revision,

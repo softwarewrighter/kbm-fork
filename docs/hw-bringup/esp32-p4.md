@@ -6,112 +6,57 @@ Goal: k's REPL on the P4's console, passing the goldens via
 
 ## What is ready
 
-- `boards/mcu/dist/libk-rv32imafc-ilp32f.a`: k compiled by clang for the
-  P4's ISA and float ABI (ilp32f), `main` renamed `k_main`. Built by
-  `boards/mcu/build.sh`.
-- `boards/mcu/common/ksys-bare.c`: k's OS layer (line input with echo and
-  backspace, output, exit) over three functions you provide.
-- Verified in QEMU: the same library linked by **GCC** with GCC-compiled
-  glue (`rv32imafc-virt-gcc` target) passes the goldens. That is the same
-  link ESP-IDF will do.
+**Use the ESP-IDF project in `boards/esp-idf`** (shared with the ESP32-S3,
+see `boards/esp-idf/README.md`). It compiles k from source with ESP-IDF's
+GCC; verified to build for `esp32p4` with ESP-IDF v5.4.2 (256 KiB heap in
+internal SRAM, 60% of DIRAM used). There is no ESP32-P4 machine in
+Espressif's QEMU, so its first run will be on the board. The S3 build of the
+same project passes the goldens in QEMU.
+
+(The prebuilt `boards/mcu/dist/libk-rv32imafc-ilp32f.a` remains an
+alternative, but compiling from source is simpler and is what was tested.)
 
 ## Plan
 
-### 1. Toolchain and a blank project
+### 1. Build and flash
 
-1. Install an ESP-IDF release that supports the P4: `idf.py --list-targets`
-   must include `esp32p4`. Note the version.
-2. `idf.py create-project k_p4` (or start from `examples/get-started/hello_world`),
-   `idf.py set-target esp32p4`, build, flash, `idf.py monitor`: confirm the
-   board's console works and which port it is on (`/dev/ttyACM0` for
-   USB-Serial-JTAG, `/dev/ttyUSB0` for a USB-UART bridge).
-3. Check the float ABI ESP-IDF uses:
-   `riscv32-esp-elf-gcc -Q --help=target -march=... | grep mabi` after a
-   build (or read the compile flags in `build/compile_commands.json`).
-   Expect `ilp32f`. If it differs, rebuild libk with matching flags.
-
-### 2. Add k
-
-Layout (a component holding the prebuilt library and the glue):
-
-```
-k_p4/
-  main/main.c                    app_main -> start k
-  components/k/
-    CMakeLists.txt
-    libk-rv32imafc-ilp32f.a      copy from boards/mcu/dist/
-    ksys-bare.c                  copy from boards/mcu/common/ (NOT libc-min.c)
-    con_esp.c                    the three console functions
+```sh
+. $IDF_PATH/export.sh                  # ESP-IDF v5.4.x with esp32p4 support
+cd boards/esp-idf
+rm -f sdkconfig                        # if set-target was run for another chip
+idf.py set-target esp32p4
+idf.py build
+idf.py -p <port> flash monitor         # Ctrl-] to quit
 ```
 
-`components/k/CMakeLists.txt` (starting point; adjust to your IDF version):
+Smoke test at k's prompt: `1+2` -> `3`. Find the console port: the P4 dev
+board's USB-UART port is the default (UART0); for the native USB port see
+the console note in `boards/esp-idf/README.md`.
 
-```cmake
-idf_component_register(SRCS "ksys-bare.c" "con_esp.c"
-                       INCLUDE_DIRS "."
-                       REQUIRES driver esp_driver_uart)   # or esp_driver_usb_serial_jtag
-add_prebuilt_library(kcore "${CMAKE_CURRENT_SOURCE_DIR}/libk-rv32imafc-ilp32f.a")
-target_link_libraries(${COMPONENT_LIB} PRIVATE kcore)
-```
+### 2. Memory
 
-`con_esp.c`: use the console driver's blocking read/write directly rather
-than stdio, so there is no line buffering or CRLF translation in the way
-(ksys-bare.c already echoes and sends `\r\n`). For USB-Serial-JTAG:
+The P4 build keeps k's heap in internal SRAM (256 KiB). For more, enable
+PSRAM in menuconfig (Component config > ESP PSRAM) together with
+"Allow .bss segment placed in external memory"
+(`CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY`); `components/k` then puts a
+4 MiB heap in PSRAM automatically. Override with `idf.py -DK_HEAP=n build`.
+`idf.py size` shows whether it fits.
 
-```c
-#include "driver/usb_serial_jtag.h"
-#include "esp_system.h"
-int  con_getc(void) { uint8_t c; while (usb_serial_jtag_read_bytes(&c, 1, portMAX_DELAY) != 1) {} return c; }
-void con_putc(int c) { uint8_t b = c; usb_serial_jtag_write_bytes(&b, 1, portMAX_DELAY); }
-void con_exit(int code) { (void)code; esp_restart(); }
-// call usb_serial_jtag_driver_install() once before starting k
-```
+### 3. Notes
 
-For a UART console, the equivalents are `uart_driver_install`,
-`uart_read_bytes(UART_NUM_0, &c, 1, portMAX_DELAY)` and `uart_write_bytes`.
-API names move between IDF versions; check the installed headers.
-
-`main/main.c`:
-
-```c
-void kmain(void);                       // from ksys-bare.c: calls k_main
-static void k_task(void *arg) { kmain(); }
-void app_main(void) {
-    /* install the console driver here */
-    xTaskCreate(k_task, "k", 32 * 1024, NULL, 5, NULL);   // k needs a real stack
-}
-```
-
-The default main-task stack is far too small for k; run it in its own task
-with 32 KB (or raise `CONFIG_ESP_MAIN_TASK_STACK_SIZE`). FreeRTOS on the P4
-handles FPU context for tasks; no manual FPU enable is needed.
-
-### 3. Memory
-
-k's library defaults to KHEAP=13 (512 KiB heap, about 553 KB with tables
-and stack). With ESP-IDF's own use of SRAM that may not fit:
-
-- First bring-up: rebuild a smaller library,
-  `KFLAGS_rv32imafc_ilp32f="-DKHEAP=12 -DKOBJ=10" boards/mcu/build.sh`
-  (256 KiB heap), and copy the new `.a`.
-- Then PSRAM, if the board has it: enable PSRAM in menuconfig plus the
-  option that allows `.bss` in external RAM (`CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY`
-  in current IDF), and build libk with
-  `-DKHEAP=18 -DKHEAP_ATTR='__attribute__((section(".ext_ram.bss")))'`
-  (16 MiB). Confirm the section name against IDF's `EXT_RAM_BSS_ATTR` in
-  `esp_attr.h` for your version.
-- `idf.py size` shows whether it fits; a link error about DRAM overflow
-  means the heap is too big for internal RAM.
+- k runs in its own task with a 32 KB stack, pinned to core 1
+  (`main/main.c`); FreeRTOS handles the FPU context.
 
 ### 4. Test
 
 1. `idf.py flash`, then close any monitor so the port is free.
-2. Start the driver, then reset the board (EN button):
-   `python3 test/drive_serial.py test/golden/basic.k /dev/ttyACM0 | diff test/golden/basic.expected -`
-   (opening the port may itself reset the board; that is fine, the driver
-   waits for k's banner). If k is already running, add `--attached`.
-3. Heap limit: a KHEAP=12 build with `test/limits/heap.k` should print
-   `wsfull` (then `con_exit` restarts the board; that is expected).
+2. From the repo root:
+   `python3 test/drive_serial.py --reset test/golden/basic.k <port> | diff test/golden/basic.expected -`
+   and the same with `test/golden/big.k` / `big.expected`. `--reset` pulses
+   RTS to reset the board; otherwise press RESET after starting it, or use
+   `--attached` if k is already at its prompt.
+3. Heap limit: an `idf.py -DK_HEAP=11 build` with `test/limits/heap.k`
+   should print `wsfull` (then `con_exit` restarts the board; expected).
 
 ## Known gaps / risks
 

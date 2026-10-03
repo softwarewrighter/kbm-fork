@@ -1,0 +1,5 @@
+# Overrides for the QEMU test build only (test-qemu.sh). Espressif's QEMU
+# (esp_develop_9.0.0) does not bring up PSRAM for the ESP32-S3 machine, so the
+# test build keeps k's heap in internal SRAM. The real N16R8 build uses
+# sdkconfig.defaults.esp32s3 (octal PSRAM, 4 MiB heap).
+CONFIG_SPIRAM=n
