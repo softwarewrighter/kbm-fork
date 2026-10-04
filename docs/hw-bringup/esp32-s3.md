@@ -36,6 +36,10 @@ Many N16R8 dev boards (ESP32-S3-DevKitC-1 style) have two USB connectors:
 - **USB**: the chip's native USB-Serial-JTAG, usually `/dev/ttyACM0`. Only
   the console if you switch it in menuconfig (step 6).
 
+Safety: `idf.py flash` is routine and recoverable (BOOT+RST). Never run
+`espefuse.py` or enable Secure Boot or Flash Encryption, and ask before
+`erase-flash`. Same rules as `esp32-p4.md` step 0.
+
 ## Steps
 
 1. **Build**

@@ -53,6 +53,36 @@ but compiling from source is simpler and is what was tested.)
 
 ## Plan
 
+### 0. Prerequisites and safety (read first)
+
+- **ESP-IDF v5.4.x** (v5.4.2 tested), installed the normal way:
+  `git clone -b v5.4.2 --recursive https://github.com/espressif/esp-idf`,
+  then `./install.sh esp32p4`, then `. ./export.sh` in every shell. Record
+  `idf.py --version`. A v3.x chip needs v5.5+ instead (see the table above).
+- Python `pyserial` for `test/drive_serial.py`. ESP-IDF's Python environment
+  already has it.
+- **Find the port.** Connect only the Type-C port labelled **UART**. List
+  `ls /dev/ttyUSB* /dev/ttyACM*` (macOS: `ls /dev/cu.*`) before and after
+  plugging it in; the new entry is the board. Use that path wherever these
+  steps say `/dev/ttyUSB0`.
+  - On Linux, if access is denied, add the user to `dialout` (or `uucp` on
+    Arch) and log in again.
+  - Confirm with `python -m esptool --port <port> chip_id`. It must report
+    `ESP32-P4` and print its revision. If it reports any other chip, you
+    have the wrong port or board.
+- **What is allowed without asking the human.** Exception to the rule in
+  `README.md`: on ESP32 chips the boot ROM is in mask ROM and cannot be
+  overwritten. `idf.py flash` (bootloader at 0x2000, partition table,
+  app) and `idf.py app-flash` are routine and recoverable through
+  BOOT+RST, so run them freely on this board.
+- **Never, without explicit approval from the human:**
+  - `espefuse.py` in any form (eFuses are one-time and permanent);
+  - enabling Secure Boot or Flash Encryption in menuconfig;
+  - `idf.py erase-flash` / `esptool erase_flash` (recoverable, but it
+    erases anything else stored on the board).
+- Work on branch `hw/esp32p4` off `spike/portable-k`. Commit and push after
+  each step that produces a result.
+
 ### 1. Build and flash
 
 ```sh
@@ -65,6 +95,13 @@ idf.py -p /dev/ttyUSB0 flash monitor   # UART Type-C port; Ctrl-] to quit
 ```
 
 If esptool cannot connect, hold BOOT, tap RST, release BOOT, and retry.
+After flashing in that mode, tap RST to start the app.
+
+**Stop and report to the human** (do not work around these):
+- esptool reports a chip revision outside v0.1–v1.99 for this ESP-IDF.
+- PSRAM is not found or its memtest fails. As a diagnostic only, you may try
+  the no-PSRAM build (step 2, last row) and report both results.
+- A boot loop that a rebuild of an unchanged tree does not fix.
 
 Check the boot log for:
 - The chip revision line.

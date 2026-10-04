@@ -94,7 +94,10 @@ Either way it also compiles `ksys-bare.c` and its own `con_*` functions.
   card, confirm its size matches, and never write to a device you have not
   identified that way. Never write to a disk that holds a mounted system
   partition. Ask the human before reflashing a board's bootloader or
-  erasing flash beyond the application region.
+  erasing flash beyond the application region. Exception: on ESP32 boards,
+  `idf.py flash` (which rewrites ESP-IDF's second-stage bootloader) is
+  routine. Never burn eFuses or enable secure boot or flash encryption
+  without approval (see esp32-p4.md, step 0).
 - Keep the ksrc/ changes minimal and guarded. The original kbm build must
   stay byte-identical: `test/check-kapp-hash.sh <pinned BareMetal>`.
 - If something in a plan is wrong for the real board (a pin, a config
