@@ -16,7 +16,24 @@ Read this file first, then the board's own plan:
 | ESP32-P4 (Waveshare ESP32-P4-Module-DEV-KIT, chip v1.x) | 2x RV32IMAFC @ 360 MHz, 768 KB SRAM, 32 MB PSRAM | ESP-IDF project `boards/esp-idf` | [esp32-p4.md](esp32-p4.md) |
 | Atomic Pi | Atom x5-Z8350 (x86-64, SSE4.2, no AVX), 2 GB | Linux binary, or BareMetal (kbm proper) from a UEFI USB stick | [atomic-pi.md](atomic-pi.md) |
 | WCH CH582F board | QingKe RISC-V4A (RV32IMAC, no FPU), 32 KB SRAM, 448 KB flash | bare metal on WCH's EVT SDK, `boards/ch582` | [ch582.md](ch582.md) |
+| STM32F103C8T6 board ("Blue Pill" class) | Cortex-M3 72 MHz, no FPU, 20 KB SRAM, 64 KB flash (128 KB usable on most parts; k needs 85 KB) | bare metal, no SDK, `boards/stm32f103` | [stm32f103.md](stm32f103.md) |
 | Seeed XIAO RP2350 / Pico 2 | 2x Cortex-M33 + FPU, 2x Hazard3 RV32IMAC; 520 KB | bare metal in the Pico SDK | [rp2350.md](rp2350.md) |
+
+### What k needs at minimum (measured)
+
+Measured on the smallest builds (CH582F, STM32F103):
+- **Code:** about 85 KB on Cortex-M3 Thumb-2, or 110 KB on RV32IMAC (GCC
+  `-Os`).
+- **Stack:** about 3.7 KiB peak.
+- **Heap:** at least 8 KiB for `basic.k`.
+- **RAM:** about 16 KB in total.
+
+Below that, k does not fit without being rewritten.
+
+| Board | Why not |
+|---|---|
+| WCH CH32V003 (e.g. CH32V003F4P6 modules) | RV32EC at 48 MHz with **2 KB SRAM** and **16 KB flash**. k's code is ~5x the flash, and its stack alone is ~2x the RAM. |
+| Any MCU with < 16 KB SRAM or < 96 KB flash | same reasons |
 
 ## What is already proven (in emulation)
 
@@ -36,6 +53,8 @@ the original AVX-512 k produces:
 | x86-64-v2 Linux (Atomic Pi) | qemu-x86_64 -cpu Westmere | `boards/linux/build.sh --test` |
 | BareMetal + k from a UEFI USB stick (Atomic Pi) | OVMF, USB storage only, Westmere | `boards/x86-baremetal/test-uefi.sh` |
 | ESP-IDF project, k compiled by IDF's GCC (ESP32-S3) | Espressif QEMU, no PSRAM, 128 KiB heap: basic.k | `boards/esp-idf/test-qemu.sh` |
+| CH582F stand-in: GCC -Os RV32IMAC, 16 KiB heap, 8 KiB stack, 32 KB RAM | qemu-system-riscv32 virt | `boards/mcu/build.sh --test` |
+| STM32F103 firmware (same code; F2 USART address) | QEMU netduino2 (Cortex-M3), 20 KB RAM limit | `boards/stm32f103/build.sh --test` |
 | ESP-IDF project builds for ESP32-P4, 4 MiB heap in PSRAM | build only (no P4 emulator) | `idf.py set-target esp32p4 build` |
 | serial test driver, banner and `--attached` modes | QEMU board on a pty | `test/drive_serial.py` |
 
