@@ -10,6 +10,7 @@ Read this file first, then the board's own plan:
 | Board | CPU | Runs k as | Plan |
 |---|---|---|---|
 | Sipeed LicheeRV Nano | SG2002: T-Head C906 (RV64GC) + Cortex-A53 | static Linux binary | [linux-boards.md](linux-boards.md) |
+| Milk-V Duo / Duo 256M / Duo S | CV1800B / SG2002 / SG2000: C906 (RV64GC), A53 on 256M and S; 64 / 256 / 512 MB | static Linux binary | [milkv-duo.md](milkv-duo.md) |
 | Luckfox Pico (RV1103) | Cortex-A7, 32-bit, 64 MB | static Linux binary | [linux-boards.md](linux-boards.md) |
 | ESP32-S3 (N16R8) | 2x Xtensa LX7 + FPU, 512 KB SRAM, 8 MB octal PSRAM | ESP-IDF project `boards/esp-idf` | [esp32-s3.md](esp32-s3.md) |
 | ESP32-P4 (Waveshare ESP32-P4-Module-DEV-KIT, chip v1.x) | 2x RV32IMAFC @ 360 MHz, 768 KB SRAM, 32 MB PSRAM | ESP-IDF project `boards/esp-idf` | [esp32-p4.md](esp32-p4.md) |

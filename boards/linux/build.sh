@@ -11,6 +11,11 @@
 #   licheerv-nano-rv64   SG2002 C906 (RV64GC)      256 MB RAM -> KHEAP=20 (64 MiB)
 #   licheerv-nano-a53    SG2002 Cortex-A53 (ARM boot mode)    -> KHEAP=20
 #   luckfox-rv1103       RV1103 Cortex-A7 (32-bit), 64 MB RAM -> KHEAP=18 (16 MiB)
+#   milkv-duo-rv64       Milk-V Duo, CV1800B C906 (RV64GC), 64 MB -> KHEAP=17 (8 MiB)
+#   milkv-duo256m-rv64   Milk-V Duo 256M, SG2002 C906, 256 MB   -> KHEAP=20 (64 MiB)
+#   milkv-duos-rv64      Milk-V Duo S, SG2000 C906, 512 MB      -> KHEAP=21 (128 MiB)
+#   milkv-arm64          Duo 256M / Duo S booted on the A53     -> KHEAP=20
+#                        (the Duo binaries are the Nano's builds with other heaps)
 #   atomicpi-x86v2       Atom x5-Z8350 (SSE4.2, no AVX), 2 GB  -> KHEAP=20 (64 MiB)
 #                        tested under qemu-x86_64 -cpu Westmere (no AVX either)
 # Override with KHEAP_<NAME>=n, e.g. KHEAP_luckfox_rv1103=17.
@@ -28,6 +33,10 @@ CF="-Ofast -fno-builtin -funsigned-char -fno-unwind-tables -Wno-parentheses -Wno
 BOARDS=(
   "licheerv-nano-rv64|--target=riscv64-linux-gnu -march=rv64gc -mabi=lp64d|20|qemu-riscv64 -cpu rv64|"
   "licheerv-nano-a53|--target=aarch64-linux-gnu -mcpu=cortex-a53|20|qemu-aarch64 -cpu cortex-a53|"
+  "milkv-duo-rv64|--target=riscv64-linux-gnu -march=rv64gc -mabi=lp64d|17|qemu-riscv64 -cpu rv64|"
+  "milkv-duo256m-rv64|--target=riscv64-linux-gnu -march=rv64gc -mabi=lp64d|20|qemu-riscv64 -cpu rv64|"
+  "milkv-duos-rv64|--target=riscv64-linux-gnu -march=rv64gc -mabi=lp64d|21|qemu-riscv64 -cpu rv64|"
+  "milkv-arm64|--target=aarch64-linux-gnu -mcpu=cortex-a53|20|qemu-aarch64 -cpu cortex-a53|"
   "atomicpi-x86v2|--target=x86_64-linux-gnu -march=x86-64-v2|20|qemu-x86_64 -cpu Westmere|"
   "luckfox-rv1103|--target=armv7a-linux-gnueabihf -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard|18|qemu-arm -cpu cortex-a7|LIBGCC_ARM"
 )
