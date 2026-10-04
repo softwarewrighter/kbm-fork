@@ -2,7 +2,13 @@
 B=../BareMetal-OS
 CFLAGS=-Ofast -fno-builtin -funsigned-char -fno-unwind-tables -Wno-parentheses -Wno-incompatible-pointer-types \
        -Wfatal-errors -nostdlib -mno-red-zone -mcmodel=large -fomit-frame-pointer \
-       $(ARCH) $(KFLAGS) -I$B/src/BareMetal/api
+       $(TARGET) $(ARCH) $(KFLAGS) -I$B/src/BareMetal/api
+# Apple Silicon's clang defaults to an arm64 Darwin target.  kbm is an
+# x86-64 BareMetal guest, so select a freestanding x86-64 target explicitly;
+# QEMU will run the resulting image on an Apple ARM64 host.
+ifeq ($(shell uname -s),Darwin)
+TARGET=--target=x86_64-unknown-none
+endif
 # Default: kbm as shipped (AVX-512; needs Bochs or a real AVX-512 CPU).
 # `make PORTABLE=1`: no AVX-512 (ksrc/kvec.h) and OS calls via k_sys
 # (ksrc/ksys.h -> s.asm), so it also runs under QEMU TCG, e.g. on a Mac.
