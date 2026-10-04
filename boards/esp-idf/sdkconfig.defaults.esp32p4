@@ -1,0 +1,10 @@
+# ESP32-P4 boards with in-package PSRAM, e.g. Waveshare ESP32-P4-Module-DEV-KIT
+# (ESP32-P4NRW32: 32 MB hex PSRAM, 16 MB NOR flash on the module).
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_HEX=y
+# 20 MHz is the only non-experimental PSRAM clock in ESP-IDF v5.4.x;
+# 200 MHz needs CONFIG_IDF_EXPERIMENTAL_FEATURES=y (see docs/hw-bringup/esp32-p4.md).
+CONFIG_SPIRAM_SPEED_20M=y
+# Let static .bss live in PSRAM, so k's heap (components/k) goes there.
+CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY=y

@@ -23,14 +23,16 @@ At k's prompt: `1+2` prints `3`. `\\` reboots the board back into k.
 
 | | ESP32-S3 (N16R8) | ESP32-P4 |
 |---|---|---|
-| sdkconfig | `sdkconfig.defaults` + `sdkconfig.defaults.esp32s3` | `sdkconfig.defaults` |
-| Flash | 16 MB | IDF default |
-| k's heap | 4 MiB in octal PSRAM (`K_HEAP=16`) | 256 KiB in internal SRAM (`K_HEAP=12`) |
-| Console | UART0 (the board's USB-UART port) | UART0 |
+| sdkconfig | `sdkconfig.defaults` + `sdkconfig.defaults.esp32s3` | `sdkconfig.defaults` + `sdkconfig.defaults.esp32p4` |
+| Flash | 16 MB | 16 MB |
+| PSRAM | 8 MB octal, 80 MHz | in-package hex PSRAM (32 MB on P4NRW32), 20 MHz |
+| k's heap | 4 MiB in PSRAM (`K_HEAP=16`) | 4 MiB in PSRAM (`K_HEAP=16`; `18` = 16 MiB also links) |
+| Console | UART0 (the board's USB-UART port) | UART0 (the board's USB-UART port) |
 
 - Heap: `idf.py -DK_HEAP=n build` (heap = 64 << n bytes). Without PSRAM the
   default is 256 KiB; with `CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY` it
-  is 4 MiB in PSRAM.
+  is 4 MiB in PSRAM. A P4 board without PSRAM: `idf.py menuconfig`, disable
+  SPI RAM, then `-DK_HEAP=12`.
 - Console on the chip's native USB port instead: `idf.py menuconfig` >
   Component config > ESP System Settings > Channel for console output >
   USB Serial/JTAG Controller. `components/k/con_esp.c` follows that setting.
