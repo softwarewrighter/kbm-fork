@@ -18,6 +18,7 @@
 #   rv32imac-virt         clang  RV32IMAC ilp32     RP2350 Hazard3, C3/C6   KHEAP=12
 #   m33-an505             clang  Cortex-M33 hard    RP2350 Arm cores        KHEAP=12
 #   rv32imafc-virt-gcc    gcc    as ESP-IDF links   (libk-rv32imafc-ilp32f)
+#   rv32imac-ch582-virt-gccsrc  gcc  RV32IMAC, 16 KiB heap, 8 KiB stack: WCH CH582F (boards/ch582)
 #   m33-an505-softfp-gcc  gcc    as the Pico SDK    (libk-m33-softfp; the SDK
 #                                builds RP2350 with -mfloat-abi=softfp)
 # RAM = .data+.bss+stack (must fit SRAM); text runs from flash on the chips.
@@ -99,7 +100,7 @@ KGCC="-Ofast -flax-vector-conversions -fno-strict-aliasing -fno-builtin -funsign
       -Wno-parentheses -DKSYS -Dmain=k_main -I$K"
 gccsrc_target() { # name, platform dir, gcc driver, gcc flags, k flags, qemu, budget
     local name=$1 plat=$2 cc=$3 gf=$4 kf=$5 qemu=$6 budget=$7 srcs=()
-    $cc $KGCC $gf $kf -c "$K/a.c" -o "$B/a-$name.o"
+    $cc $KGCC $gf $kf -c "$K/a.c" -o "$B/a-$name.o"   # a later -O in $kf overrides -Ofast
     $cc $KGCC $gf $kf -c "$K/z.c" -o "$B/z-$name.o"
     for src in "$HERE/common/ksys-bare.c" "$HERE/common/libc-min.c" "$HERE/$plat"/*.c "$HERE/$plat"/*.S; do
         [[ -f $src ]] && srcs+=("$src")
@@ -112,5 +113,11 @@ gccsrc_target rv32imafc-virt-gccsrc rv32-virt riscv64-unknown-elf-gcc "-march=rv
     "-DKHEAP=13 -DKOBJ=10" "$QV" 768
 gccsrc_target m33-an505-softfp-gccsrc m33-an505 arm-none-eabi-gcc "-mthumb -mcpu=cortex-m33 -mfloat-abi=softfp -mfpu=fpv5-sp-d16" \
     "-DKHEAP=12 -DKOBJ=10" "$QM" 520
+# WCH CH582F stand-in (boards/ch582): same GCC flags as its build (-Os, see
+# boards/ch582/build.sh), RV32IMAC soft-float, KHEAP=8 (16 KiB) KOBJ=8 and
+# an 8 KiB stack, so RAM must fit its 32 KB.
+gccsrc_target rv32imac-ch582-virt-gccsrc rv32-virt riscv64-unknown-elf-gcc \
+    "-march=rv32imac_zicsr_zifencei -mabi=ilp32 -mcmodel=medany -Wl,--defsym=__stack_size=8192" \
+    "-Os -DKHEAP=8 -DKOBJ=8" "$QV" 32
 (cd "$D" && sha256sum libk-*.a > SHA256SUMS)
 exit $fail

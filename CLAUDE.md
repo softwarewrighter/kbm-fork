@@ -5,7 +5,8 @@ k (Arthur Whitney's k edu, `ksrc/`) on BareMetal-OS, extended on branch
 
 - Start with `test/README.md` (what exists and how it is tested) and
   `docs/hw-bringup/README.md` (plans for real boards: LicheeRV Nano,
-  Luckfox RV1103, ESP32-S3, ESP32-P4, RP2350, Atomic Pi).
+  Luckfox RV1103, Milk-V Duo, ESP32-S3, ESP32-P4, RP2350, CH582F, Atomic Pi).
+  CH582F firmware: `boards/ch582/build.sh` (WCH EVT SDK, 32 KB RAM budget).
   ESP32 builds: `boards/esp-idf/README.md` (ESP-IDF v5.4.x). `docs/k-on-sw-os-ml.md` is the
   design for running k on sw-os-ml.
 - Every build must reproduce `test/golden/basic.expected` (and `big.expected`

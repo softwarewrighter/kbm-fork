@@ -15,6 +15,7 @@ Read this file first, then the board's own plan:
 | ESP32-S3 (N16R8) | 2x Xtensa LX7 + FPU, 512 KB SRAM, 8 MB octal PSRAM | ESP-IDF project `boards/esp-idf` | [esp32-s3.md](esp32-s3.md) |
 | ESP32-P4 (Waveshare ESP32-P4-Module-DEV-KIT, chip v1.x) | 2x RV32IMAFC @ 360 MHz, 768 KB SRAM, 32 MB PSRAM | ESP-IDF project `boards/esp-idf` | [esp32-p4.md](esp32-p4.md) |
 | Atomic Pi | Atom x5-Z8350 (x86-64, SSE4.2, no AVX), 2 GB | Linux binary, or BareMetal (kbm proper) from a UEFI USB stick | [atomic-pi.md](atomic-pi.md) |
+| WCH CH582F board | QingKe RISC-V4A (RV32IMAC, no FPU), 32 KB SRAM, 448 KB flash | bare metal on WCH's EVT SDK, `boards/ch582` | [ch582.md](ch582.md) |
 | Seeed XIAO RP2350 / Pico 2 | 2x Cortex-M33 + FPU, 2x Hazard3 RV32IMAC; 520 KB | bare metal in the Pico SDK | [rp2350.md](rp2350.md) |
 
 ## What is already proven (in emulation)
